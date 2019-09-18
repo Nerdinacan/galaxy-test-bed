@@ -1,0 +1,10 @@
+// Fixes for overall right-column container. Had to remove some of the original
+// unified-panel nonsense in order to bring the whole panel under control of one
+// History component.
+
+// TODO: This file can die when we house the panel in a Vue app
+
+#right .unified-panel-footer {
+    position: absolute;
+    bottom: 0;
+}

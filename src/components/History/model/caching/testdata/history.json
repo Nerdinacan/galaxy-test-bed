@@ -1,0 +1,29 @@
+{
+    "hid_counter": 22,
+    "importable": false,
+    "create_time": "2019-07-10T15:45:01.914462",
+    "contents_url": "/api/histories/d3a4d6a5256f2d9a/contents",
+    "id": "d3a4d6a5256f2d9a",
+    "size": 17878418,
+    "user_id": "f2db41e1fa331b3e",
+    "contents_active": {
+    "active": 21,
+    "deleted": 0,
+    "hidden": 0
+    },
+    "username_and_slug": null,
+    "annotation": null,
+    "empty": false,
+    "update_time": "2019-07-17T16:54:11.467701",
+    "tags": [],
+    "deleted": false,
+    "non_ready_jobs": [],
+    "genome_build": null,
+    "nice_size": "17.1 MB",
+    "slug": null,
+    "name": "Galaxy 101 Otherfgdf",
+    "url": "/api/histories/d3a4d6a5256f2d9a",
+    "published": false,
+    "model_class": "History",
+    "purged": false
+}

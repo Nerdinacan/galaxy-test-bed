@@ -1,0 +1,74 @@
+[
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-26T05:23:26.889500",
+        "url": "/api/histories/ba751ee0539fff04/contents/e89067bb68bee7a0",
+        "history_id": "ba751ee0539fff04",
+        "hid": 1,
+        "id": "e89067bb68bee7a0"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-26T05:23:24.578762",
+        "url": "/api/histories/ba751ee0539fff04/contents/0c5ffef6d88a1e97",
+        "history_id": "ba751ee0539fff04",
+        "hid": 2,
+        "id": "0c5ffef6d88a1e97"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-04-03T14:06:48.476037",
+        "url": "/api/histories/ba751ee0539fff04/contents/911dde3ddb677bcd",
+        "history_id": "ba751ee0539fff04",
+        "hid": 3,
+        "id": "911dde3ddb677bcd"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-26T05:23:19.256657",
+        "url": "/api/histories/ba751ee0539fff04/contents/ff5476bcf6c921fa",
+        "history_id": "ba751ee0539fff04",
+        "hid": 4,
+        "id": "ff5476bcf6c921fa"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-22T05:09:35.263448",
+        "url": "/api/histories/ba751ee0539fff04/contents/79966582feb6c081",
+        "history_id": "ba751ee0539fff04",
+        "hid": 5,
+        "id": "79966582feb6c081"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-22T05:09:36.267391",
+        "url": "/api/histories/ba751ee0539fff04/contents/5564089c81cf7fe8",
+        "history_id": "ba751ee0539fff04",
+        "hid": 6,
+        "id": "5564089c81cf7fe8"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-22T05:09:37.640905",
+        "url": "/api/histories/ba751ee0539fff04/contents/ba03619785539f8c",
+        "history_id": "ba751ee0539fff04",
+        "hid": 7,
+        "id": "ba03619785539f8c"
+    },
+    {
+        "history_content_type": "dataset",
+        "update_time": "2019-03-22T20:30:35.608520",
+        "url": "/api/histories/ba751ee0539fff04/contents/cbbbf59e8f08c98c",
+        "history_id": "ba751ee0539fff04",
+        "hid": 8,
+        "id": "cbbbf59e8f08c98c"
+    },
+    {
+        "history_content_type": "dataset_collection",
+        "update_time": "2019-03-22T05:16:00.206634",
+        "url": "/api/histories/ba751ee0539fff04/contents/dataset_collections/e85a3be143d5905b",
+        "history_id": "ba751ee0539fff04",
+        "hid": 18,
+        "id": "e85a3be143d5905b"
+    }
+]

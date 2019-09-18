@@ -1,0 +1,26 @@
+{
+    "hid_counter": 19,
+    "update_time": "2019-03-22T05:16:00.196335",
+    "user_id": "f2db41e1fa331b3e",
+    "importable": false,
+    "tags": [],
+    "deleted": false,
+    "contents_url": "/api/histories/ba751ee0539fff04/contents",
+    "slug": null,   
+    "username_and_slug": null,
+    "id": "ba751ee0539fff04",
+    "url": "/api/histories/ba751ee0539fff04",
+    "genome_build": "?",
+    "create_time": "2019-03-22T05:09:25.973439",
+    "published": false,
+    "model_class": "History",
+    "annotation": "I like ham.",
+    "size": 0,
+    "contents_active": {
+        "active": 5,
+        "deleted": 4,
+        "hidden": 0
+    },
+    "purged": false,
+    "name": "Importxxorz"
+}

@@ -1,0 +1,11 @@
+@import "scss/mixins.scss";
+@import "scss/transitions.scss";
+
+/* selects all appear to be borked by BootstrapVue */
+select.custom-select {
+    background: none;
+}
+
+.history {
+    @include resetHeaders();
+}

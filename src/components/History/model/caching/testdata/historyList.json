@@ -1,0 +1,58 @@
+[
+    {
+        "hid_counter": 19,
+        "update_time": "2019-05-20T19:02:30.073845",
+        "user_id": "f2db41e1fa331b3e",
+        "importable": false,
+        "tags": [
+            "aaa",
+            "asdf",
+            "sdf"
+        ],
+        "deleted": false,
+        "contents_url": "/api/histories/ba751ee0539fff04/contents",
+        "slug": null,
+        "username_and_slug": null,
+        "id": "ba751ee0539fff04",
+        "url": "/api/histories/ba751ee0539fff04",
+        "genome_build": "?",
+        "create_time": "2019-03-22T05:09:25.973439",
+        "published": false,
+        "model_class": "History",
+        "annotation": "sadfasdfasdf",
+        "size": 0,
+        "contents_active": {
+            "active": 5,
+            "deleted": 4,
+            "hidden": 0
+        },
+        "purged": false,
+        "name": "Importeda"
+    },
+    {
+        "hid_counter": 1,
+        "update_time": "2019-03-22T03:02:17.759766",
+        "user_id": "f2db41e1fa331b3e",
+        "importable": false,
+        "tags": [],
+        "deleted": false,
+        "contents_url": "/api/histories/f597429621d6eb2b/contents",
+        "slug": null,
+        "username_and_slug": null,
+        "id": "f597429621d6eb2b",
+        "url": "/api/histories/f597429621d6eb2b",
+        "genome_build": "?",
+        "create_time": "2019-03-22T03:02:17.759756",
+        "published": false,
+        "model_class": "History",
+        "annotation": null,
+        "size": 0,
+        "contents_active": {
+            "active": 0,
+            "deleted": 0,
+            "hidden": 0
+        },
+        "purged": false,
+        "name": "Unnamed history"
+    }
+]
