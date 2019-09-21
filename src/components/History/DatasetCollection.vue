@@ -89,8 +89,8 @@ export default {
         },
 
         drillDown() {
-            const { history_id, type_id } = this.content;
-            this.selectCollection({ history_id, type_id });
+            const { history_id: historyId, type_id: typeId } = this.content;
+            this.selectCollection({ historyId, typeId });
         },
 
         deleteCollection() {

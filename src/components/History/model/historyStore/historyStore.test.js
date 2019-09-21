@@ -217,6 +217,12 @@ describe("historyStore", () => {
 
     describe("actions", () => {
 
+        describe("$init", () => {
+            it("should start listening to the History$ observable when store is initialized", () => {
+
+            })
+        })
+
     })
 
 })

@@ -211,9 +211,8 @@ export default {
         },
 
         close() {
-            this.selectCollection({
-                history_id: this.historyId
-            });
+            const { historyId } = this;
+            this.selectCollection({ historyId });
         },
 
         focusItem({ currentTarget }) {

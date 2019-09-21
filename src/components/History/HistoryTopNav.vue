@@ -42,10 +42,12 @@
 
 <script>
 
-import { mapActions, mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import HistorySelector from "./HistorySelector";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
+
+import { createNewHistory } from "./model/History";
 
 export default {
     components: {
@@ -75,17 +77,13 @@ export default {
             "setCurrentHistoryId"
         ]),
 
-        ...mapActions("history", [
-            "createNewHistory"
-        ]),
-
         useLegacyHistoryPanel() {
             sessionStorage.removeItem('useBetaHistory');
             location.reload();
         },
 
         async createHistory() {
-            const newHistory = await this.createNewHistory();
+            const newHistory = await createNewHistory();
             this.historyId = newHistory.id;
             this.closeMenu();
         },

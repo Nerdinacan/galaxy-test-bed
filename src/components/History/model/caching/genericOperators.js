@@ -47,7 +47,6 @@ export const getItem = (config = {}) => {
         filter(Boolean),
         withLatestFromDb(collection$),
         map(([ key, coll ]) => coll.findOne(key)),
-        // complete the observable after one result if live not desired
         mergeMap(query => live ? query.$ : query.$.pipe(take(1)))
     )
 }
@@ -77,7 +76,7 @@ export const setItem = (config = {}) => {
                     // tag('setItem 409 error'),
                     take(retries)
                 )),
-                catchError((err, caught) => {
+                catchError(err => {
                     console.warn("setItem upsert error", err);
                     return of(null);
                 })
@@ -106,13 +105,12 @@ export const deleteItem = collection$ => pipe(
 /**
  * Update a few fields in a document, source is an rxDb document
  */
-export const updateDocFields = (config = {}) => {
+export const updateDocFields = () => {
 
     return pipe(
         mergeMap(([ doc, changedFields ]) => {
-            console.log("updateDocFields", doc, changedFields);
             const p = doc.update({ $set: changedFields })
-                .then(result => {
+                .then(() => {
                     // am not sure why this doesn't return anything
                     // useful from the promise, but we'll return the
                     // RxDB document.
@@ -123,6 +121,6 @@ export const updateDocFields = (config = {}) => {
         retryWhen(err => err.pipe(
             filter(err => err.name == "conflict"),
             take(1)
-        )),
+        ))
     )
 }

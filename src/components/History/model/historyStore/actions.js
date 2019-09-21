@@ -1,91 +1,32 @@
-import {
-    addToHistoryCache,
-    listenToHistoryCache,
-    deleteHistoryFromCache
-} from "../History$";
-
-import {
-    createHistory,
-    updateHistoryFields as updateProps,
-    secureHistory,
-    cloneHistory,
-    deleteHistoryById,
-    purgeAllDeletedContent,
-    bulkContentUpdate
-} from "../queries";
-
-import {
-    createPromiseFromOperator,
-    cacheContent
-} from "../caching";
-
+import { of } from "rxjs";
+import { HistoryCache } from "../History";
+import { CurrentUserId } from "store/userStore";
 
 
 /**
- * Syncs history list with cached data. An argument can be made
- * that since indexedDb is storing the local data that there is
- * no need for Vuex to do the same thing, but I think there's value
- * in separating the caching mechanism from the store so that the
- * caching mechanism can be replaced on improved modularaly.
+ * Syncs history list with cached data. Observables do most of the
+ * work of caching and updating, we just dump the results back into
+ * Vuex when we're done.
  */
 
-export function $init(context, { store }) {
-    listenToHistoryCache(store);
+export function $init({ commit }, { store }) {
+
+    // generate CurrentUserId observable by looking at the store
+    const CurrentUserId$ = of(store).pipe(CurrentUserId());
+
+    // generate a history cache observable from the user id
+    const HistoryCache$ = CurrentUserId$.pipe(HistoryCache());
+
+    // transfers changing results of indexDB contents to the vuex store
+    // so we can maintain the fiction that Vuex has a reason to be here
+    HistoryCache$.subscribe({
+        next: list => commit("setHistories", list),
+        error: err => console.warn("Histories$, error", err)
+    })
 }
 
 
-//#region History CRUD & operations
-
-// TODO: Not convinced this selection should be in global state
-
-export async function createNewHistory() {
-    const newHistory = await createHistory();
-    addToHistoryCache(newHistory);
-    return newHistory;
-}
-
-export async function copyHistory(context, { history, name, copyWhat }) {
-    const newHistory = await cloneHistory(history, name, copyWhat);
-    addToHistoryCache(newHistory);
-    return newHistory;
-}
-
-export async function deleteHistory({ commit }, { history, purge } = { purge: false }) {
-    await deleteHistoryById(history.id, purge);
-    deleteHistoryFromCache(history);
-    commit("setCurrentHistoryId", null);
-    return history;
-}
-
-export async function makeHistoryPrivate(context, { history }) {
-    const newHistory = await secureHistory(history.id);
-    addToHistoryCache(newHistory);
-    return newHistory;
-}
-
-export async function updateHistoryFields(context, { history, fields }) {
-    const updatedHistory = await updateProps(history, fields);
-    addToHistoryCache(updatedHistory);
-    return updatedHistory;
-}
-
-//#endregion
-
-
-//#region Content selection
-
-// TODO: Not convinced this should be in global state
-
-export function setContentSelection({ commit }, { history, selection = [] }) {
-    commit("setContentSelection", {
-        historyId: history.id,
-        typeIds: selection.map(c => c.type_id)
-    });
-}
-
-export function clearContentSelection({ dispatch }, { history }) {
-    dispatch("setContentSelection", { history });
-}
+// #region Content selection
 
 export function selectContentItem({ getters, commit }, { content }) {
     const existingSelection = getters.contentSelection(content.history_id);
@@ -107,10 +48,10 @@ export function unselectContentItem({ getters, commit }, { content }) {
     })
 }
 
-//#endregion
+// #endregion
 
 
-//#region Content CRUD and operations
+// #region Content CRUD and operations
 
 export async function deleteContent(_, { content }) {
     console.log("deleteContent");
@@ -126,5 +67,5 @@ export async function undeleteContent(_, { content }) {
     // return await cacheMe(undeleted);
 }
 
-//#endregion
+// #endregion
 

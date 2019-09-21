@@ -20,8 +20,8 @@ export const historyStore = {
 
 
 /**
- * Caches user settings like "currentHistory" in localStorage instead
- * of having the server do that for them. Hopefully doing this in the client
+ * Caches simple user settings like "currentHistory" in localStorage instead
+ * of having the server do that. Hopefully doing this in the client
  * will mean we can move closer towards a completely stateless REST api.
  */
 

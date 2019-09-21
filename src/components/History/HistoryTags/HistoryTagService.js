@@ -1,7 +1,6 @@
 import { TagService } from "components/Tags/tagService";
 import { createTag } from "components/Tags/model";
-import store from "store";
-
+import { updateHistoryFields } from "../model/History";
 
 export class HistoryTagService extends TagService {
 
@@ -18,7 +17,7 @@ export class HistoryTagService extends TagService {
         const tag = createTag(rawTag);
         const tagSet = new Set(this.history.tags);
         tagSet.add(tag.text);
-        this.saveHistoryTags(tagSet);
+        await this.saveHistoryTags(tagSet);
         return tag;
     }
 
@@ -26,17 +25,13 @@ export class HistoryTagService extends TagService {
         const tag = createTag(rawTag);
         const tagSet = new Set(this.history.tags);
         tagSet.delete(tag.text);
-        this.saveHistoryTags(tagSet);
+        await this.saveHistoryTags(tagSet);
         return tag;
     }
 
-    saveHistoryTags(rawTags) {
-        store.dispatch("history/updateHistoryFields", {
-            history: this.history,
-            fields: {
-                tags: Array.from(rawTags)
-            }
-        });
+    async saveHistoryTags(rawTags) {
+        const tags = Array.from(rawTags);
+        return await updateHistoryFields(this.history, { tags });
     }
 
 }

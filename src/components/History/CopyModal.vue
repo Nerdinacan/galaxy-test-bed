@@ -57,6 +57,7 @@
 <script>
 
 import { mapActions, mapGetters, mapMutations } from "vuex";
+import { copyHistory } from "./model/History";
 
 export default {
     props: {
@@ -106,7 +107,6 @@ export default {
     methods: {
 
         ...mapActions("history", [
-            "copyHistory",
             "selectCurrentHistory"
         ]),
 
@@ -117,7 +117,7 @@ export default {
         async copyHistoryClick(close) {
             this.loading = true;
             const { history, name, copyAll } = this;
-            const newHistory = await this.copyHistory({ history, name, copyAll });
+            const newHistory = await copyHistory(history, name, copyAll);
             this.setCurrentHistoryId(newHistory.id);
             this.loading = false;
             close();

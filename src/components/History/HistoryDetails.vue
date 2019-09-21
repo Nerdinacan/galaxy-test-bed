@@ -112,15 +112,18 @@
 
         <copy-modal v-model="showCopyModal" :history="history" />
 
-        <b-modal id="delete-history-modal" title="Delete History?" title-tag="h2" @ok="deleteHistory">
+        <b-modal id="delete-history-modal" title="Delete History?"
+            title-tag="h2" @ok="deleteHistoryClick">
             <p>{{ messages.deleteHistoryPrompt | localize }}</p>
         </b-modal>
 
-        <b-modal id="purge-history-modal" title="Permanently Delete History?" title-tag="h2" @ok="purgeHistory">
+        <b-modal id="purge-history-modal" title="Permanently Delete History?"
+            title-tag="h2" @ok="purgeHistory">
             <p>{{ messages.purgeHistoryPrompt | localize }}</p>
         </b-modal>
 
-        <b-modal id="make-private-modal" title="Make History Private" title-tag="h2" @ok="makePrivate">
+        <b-modal id="make-private-modal" title="Make History Private"
+            title-tag="h2" @ok="makePrivate">
             <p>{{ messages.makePrivatePrompt | localize }}</p>
         </b-modal>
 
@@ -132,8 +135,6 @@
 
 <script>
 
-import { mapActions } from "vuex";
-
 import HistoryTags from "./HistoryTags/Tags";
 import CopyModal from "./CopyModal";
 import ClickToEdit from "components/Form/ClickToEdit";
@@ -144,6 +145,13 @@ import toggle from "components/mixins/toggle";
 import messages from "./messages";
 
 import { bytesToString } from "utils/utils"
+
+import {
+    deleteHistory,
+    makeHistoryPrivate,
+    updateHistoryFields
+} from "./model/History";
+
 
 export default {
 
@@ -204,31 +212,26 @@ export default {
 
     methods: {
 
-        ...mapActions("history", [
-            "updateHistoryFields",
-            "makeHistoryPrivate"
-        ]),
-
-        updateFields(fields = {}) {
-            this.updateHistoryFields({
-                history: this.history,
-                fields
-            });
-        },
-
         openCopyModal() {
             this.showCopyModal = true;
+        },
+
+        async updateFields(fields = {}) {
+            try {
+                const result = await updateHistoryFields(this.history, fields);
+                return result;
+            } catch(err) {
+                console.warn("Error updating history fields", this.history, fields);
+            }
         },
 
 
         // TODO: fix endless looping when delete or purge
         // Vue trying to show history that we just wiped?
 
-        async deleteHistory(evt) {
+        async deleteHistoryClick(evt) {
             try {
-                await this.$store.dispatch("history/deleteHistory", {
-                    history: this.history
-                });
+                await deleteHistory(this.history);
                 evt.vueTarget.hide();
             } catch(err) {
                 console.warn("Failed to delete current history", err)
@@ -237,10 +240,7 @@ export default {
 
         async purgeHistory(evt) {
             try {
-                await this.$store.dispatch("history/deleteHistory", {
-                    history: this.history,
-                    purge: true
-                });
+                await deleteHistory(this.history, true);
                 evt.vueTarget.hide();
             } catch(err) {
                 console.warn("Failed to purge current history", err)
@@ -249,7 +249,7 @@ export default {
 
         async makePrivate(evt) {
             try {
-                await this.makeHistoryPrivate({ history: this.history });
+                await makeHistoryPrivate(this.history);
                 evt.vueTarget.hide();
             } catch(err) {
                 console.warn("Failed to make history private.", err)

@@ -1,3 +1,8 @@
+// TODO:
+// check this out, see if we can replace our poll operator with it.
+// https://github.com/jiayihu/rx-polling
+
+
 import { of, pipe } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 import { createInputFunction, ajaxGet, firstItem, operateOnArray } from "utils/observable";

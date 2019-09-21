@@ -133,7 +133,7 @@
 
 <script>
 
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import ContentFilters from "./ContentFilters";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
@@ -229,18 +229,25 @@ export default {
     },
     methods: {
 
-        ...mapActions("history", [
-            "setContentSelection",
-            "clearContentSelection"
+        ...mapMutations("history", [
+            "setContentSelection"
         ]),
 
         // #region selection management
 
-        selectAllVisibleContent() {
+        selectContent(content) {
             this.setContentSelection({
-                history: this.history,
-                selection: content
+                historyId: this.history.id,
+                typeIds: content.map(c => c.type_id)
             })
+        },
+
+        clearContentSelection() {
+            this.selectContent([]);
+        },
+
+        selectAllVisibleContent() {
+            this.selectContent(this.content)
         },
 
         clearSelection() {

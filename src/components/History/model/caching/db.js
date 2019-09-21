@@ -1,13 +1,12 @@
 import RxDB from "rxdb";
-import idb from "pouchdb-adapter-idb";
+import dbConfig from "components/History/model/caching/config";
 import { of } from "rxjs";
 import { tap, shareReplay, mergeMap, switchMapTo, retryWhen,
     take, delay } from "rxjs/operators";
-import { dbConfig, historySchema, historyContentSchema, datasetSchema,
+import { historySchema, historyContentSchema, datasetSchema,
     datasetCollectionSchema, requestTimeSchema } from "./schema";
 import moment from "moment";
 
-RxDB.plugin(idb);
 
 
 /**
@@ -18,7 +17,7 @@ const dbConfig$ = of(dbConfig);
 
 export const db$ = dbConfig$.pipe(
     mergeMap(config => {
-        console.log(`Building database ${config.name}`);
+        // console.log(`Building database ${config.name}`);
         return RxDB.create(config).catch(err => {
             console.warn("Error creating db", err);
             return err;

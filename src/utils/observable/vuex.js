@@ -1,23 +1,29 @@
 /**
- * Operator that watches a vuex store given a source selector function
- * Source observable input is the selector function input for the store.watch method
+ * Operator that watches a vuex store when provided a source selector function
+ * Output is an observable, source input should be the store.
+ * Example:
+ *   of(store).pipe(watchVuexSelector({ selector: yourFn }))
  */
 
-import { Observable, pipe } from "rxjs";
+import { Observable } from "rxjs";
 import { switchMap } from "rxjs/operators";
 
-export const watchVuexSelector = config => {
+export const watchVuexSelector = config => store$ => {
+
+    // Selector is a function that digs through the vuex state loooking
+    // for the value you care about
+    //    ex: state => state.user.currentUser
 
     const {
-        store,
+        selector,
         watchOptions = { immediate: true }
     } = config;
 
-    return pipe(
-        switchMap(selectorFn => {
+    return store$.pipe(
+        switchMap(store => {
             return new Observable(subscriber => {
                 const callback = result => subscriber.next(result);
-                return store.watch(selectorFn, callback, watchOptions);
+                return store.watch(selector, callback, watchOptions);
             });
         })
     )
