@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "help": "vue-cli-service help test:unit",
     "serve": "vue-cli-service serve --port=8081",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test:unit": "vue-cli-service test:unit -w",
-    "test": "npm run test:unit -g src/**/History/**/*.test.js"
+    "test:unit": "vue-cli-service test:unit --watch",
+    "test:inspect": "vue-cli-service test:unit --inspect-brk --watch"
   },
   "dependencies": {
     "@johmun/vue-tags-input": "^2.1.0",

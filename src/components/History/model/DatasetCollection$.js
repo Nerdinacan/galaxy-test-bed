@@ -1,6 +1,6 @@
 import { pipe } from "rxjs";
 import { tap, map, filter, pluck } from "rxjs/operators";
-import { getCachedContent, getCachedDatasetCollection, cacheDatasetCollection } from "./caching";
+import { getContent, getDatasetCollection, cacheDatasetCollection } from "./caching/operators";
 import { checkForUpdates } from "./Dataset$";
 import DscWrapper from "./DscWrapper";
 // import { tag } from "rxjs-spy/operators";
@@ -18,13 +18,13 @@ export function DatasetCollection$(id$) {
     // value since this gets called in a tap()
     const lookupFn = () => pipe(
         pluck('id'),
-        getCachedDatasetCollection({ live: false }),
+        getDatasetCollection(),
     )
 
     const content$ = id$.pipe(
 
         // get content observable from id
-        getCachedContent(),
+        getContent(),
 
         // use content, compare update_times, get fresh
         // collection if the existing dataset collection
@@ -38,7 +38,7 @@ export function DatasetCollection$(id$) {
 
     return content$.pipe(
         pluck("id"),
-        getCachedDatasetCollection(),
+        getDatasetCollection(),
         filter(Boolean),
         map(doc => doc.toJSON()),
         map(object => new DscWrapper({ object })),

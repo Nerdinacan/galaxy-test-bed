@@ -1,6 +1,8 @@
-import { pipe } from "rxjs";
-import { switchMap, map } from "rxjs/operators";
-import { withLatestFromDb, historyContent$ } from "../caching";
+import { from, pipe } from "rxjs";
+import { switchMap, map, withLatestFrom } from "rxjs/operators";
+import { getCollection } from "../caching/db";
+
+
 
 
 /**
@@ -20,8 +22,11 @@ export const contentObservable = config => {
         debug = false
     } = config;
 
+    const coll$ = from(getCollection('historycontent'));
+
     return pipe(
-        withLatestFromDb(historyContent$),
+        withLatestFrom(coll$),
+        // withLatestFromDb(historyContent$),
         map(buildLocalContentQuery({ label, debug })),
         switchMap(query => query.$)
     )

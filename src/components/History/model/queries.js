@@ -129,6 +129,29 @@ export async function updateContentFields(content, body = {}) {
 
 
 /**
+ * Loads specific fields for provided content object, handy for loading
+ * visualizations or any other field that's too unwieldy to reasonably include
+ * in the standard content caching cycle.
+ *
+ * @param {Object} content content object
+ * @param {Array} fields Array of fields to load
+ */
+export async function loadContentFields(content, fields = []) {
+    if (fields.length) {
+        const { history_id, id, history_content_type: type } = content;
+        const keys = fields.join(",");
+        const url = `/api/histories/${history_id}/contents/${type}s/${id}?keys=${keys}`;
+        const response = await axios.get(url);
+        if (response.status != 200) {
+            throw new Error(response);
+        }
+        return response.data;
+    }
+    return null;
+}
+
+
+/**
  * Generic content query function originally intended to help with bulk updates
  * so we don't have to go through the barbaric legacy /history endpoints and
  * can stay in the /api as much as possible. A more general query mechanism
@@ -146,7 +169,35 @@ async function getAllContentByFilter(history, filterParams = {}, keys = ["id","h
 }
 
 
-// Bulk operations on history, avoiding using the old /history route for now
+// delete/purge content, means setting a flag to false
+
+/**
+ * Deletes item from history
+ * @param {Object} c Content object
+ * @param {Boolean} purge Permanent delete
+ * @param {Boolean} recursive Scorch the earth?
+ */
+export async function deleteContent(content, purge = false, recursive = false) {
+    const params = [`purge=${purge}`, `recursive=${recursive}`].join("&");
+    const { history_id, history_content_type, id } = content;
+    const url = `/api/histories/${history_id}/contents/${history_content_type}s/${id}?${params}`;
+    const response = await axios.delete(url);
+    if (response.status != 200) {
+        throw new Error(response);
+    }
+    return response.data;
+}
+
+export async function undeleteContent(content) {
+    const undeleteResult = await updateContentFields(content, {
+        deleted: false
+    });
+    return undeleteResult;
+}
+
+
+
+// Bulk operations on history content, avoiding using the old /history route for now
 // even if it means we need to do a preliminary request
 
 export async function showAllHiddenContent(history) {

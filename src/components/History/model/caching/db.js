@@ -1,81 +1,231 @@
-import RxDB from "rxdb";
-import dbConfig from "components/History/model/caching/config";
-import { of } from "rxjs";
-import { tap, shareReplay, mergeMap, switchMapTo, retryWhen,
-    take, delay } from "rxjs/operators";
-import { historySchema, historyContentSchema, datasetSchema,
-    datasetCollectionSchema, requestTimeSchema } from "./schema";
+/**
+ * For infathomable reasons, the package called "RxDB" uses almost
+ * exclusively a promise-based api. But at least those are easy
+ * to test.
+ *
+ * This is basically one big promise function that assembles the
+ * database and all the current collections. Utility methods are
+ * provided for our various model types.
+ */
+
+import { defer } from "rxjs";
+import { share, take, pluck } from "rxjs/operators";
+import { create } from "rxdb";
+import { historySchema, historyContentSchema, datasetSchema, datasetCollectionSchema } from "./schema";
+import { pruneToSchema } from "./schemaUtils";
 import moment from "moment";
+import dbConfig from "components/History/model/caching/config";
 
 
 
-/**
- * RxDB database object observable, tries 2 times to create then fails.
- */
+// Database instance
 
-const dbConfig$ = of(dbConfig);
+let _db = null;
 
-export const db$ = dbConfig$.pipe(
-    mergeMap(config => {
-        // console.log(`Building database ${config.name}`);
-        return RxDB.create(config).catch(err => {
-            console.warn("Error creating db", err);
-            return err;
-        });
-    }),
-    retryWhen(err => err.pipe(
-        tap(err => console.warn("DB build error", err)),
-        take(2),
-        switchMapTo(dbConfig$),
-        mergeMap(config => {
-            const { name, adapter } = config;
-            console.log(`Wiping database ${name}`);
-            return RxDB.removeDatabase(name, adapter).catch(err => {
-                console.warn("Error wiping database db", err);
-                return err;
-            });
-        }),
-        delay(200)
-    )),
-    shareReplay(1)
-)
+export async function getDb() {
+    if (!_db) {
+        _db = await buildDb();
+    }
+    return _db;
+}
 
-
-/**
- * Creates an observable RxDB collection object. Tries 2 times
- * to create, drops collection each time in event of failure
- */
-
-export function initCollection(config) {
-
-    const { name } = config;
-
-    return db$.pipe(
-        mergeMap(db => db.collection(config).catch(err => {
-            console.warn("Error creating collection", err);
-            return err;
-        })),
-        retryWhen(err => err.pipe(
-            tap(err => console.warn(`Collection build error`, name, err)),
-            take(2),
-            switchMapTo(db$),
-            mergeMap(db => {
-                console.warn(`Removing collection ${name}`);
-                return db.removeCollection(name).catch(err => {
-                    console.warn("Error deleting collection", err);
-                    return err;
-                });
-            }),
-            delay(100)
-        )),
-        shareReplay(1)
-    );
+export async function wipeDatabase() {
+    if (_db) {
+        await _db.remove();
+        _db = null;
+    }
+    return _db;
 }
 
 
-// Mixins
+// db operators
+// Because the api is promise based, need to defer and
+// share the db instance, which is wierd because the library
+// has the word "rx" in the name implying that the author
+// knew something about observables.
 
-export const commonProps = {
+const db$ = defer(getDb).pipe(share());
+
+export function getCollection(collectionName) {
+    return db$.pipe(
+        pluck(collectionName),
+        take(1),
+        // tap(coll => console.log("getCollection", collectionName, coll))
+    ).toPromise();
+}
+
+
+
+// DB assembly. One big promise that delivers the database instance
+// I previously built individual collection observables for each of the db
+// collections and although that had its advantages, it added a lot of
+// complexity that probably isn't unnecessary
+
+async function buildDb() {
+    const db = await create(dbConfig);
+    await buildHistory(db);
+    await buildContent(db);
+    await buildDatasets(db);
+    await buildDsc(db);
+    return db;
+}
+
+async function buildHistory(db) {
+
+    const historyCollection = await db.collection({
+        name: "history",
+        schema: historySchema,
+        methods: {
+            ...dateMethods
+        }
+    });
+
+    const historyPruner = pruneToSchema(historySchema);
+
+    const prepareHistory = raw => {
+        raw.isDeleted = raw.deleted;
+        delete raw.deleted;
+        historyPruner(raw);
+    }
+
+    historyCollection.preInsert(prepareHistory, false);
+    historyCollection.preSave(prepareHistory, false);
+
+    return historyCollection;
+}
+
+async function buildContent(db) {
+
+    // content collection
+    const contentCollection = await db.collection({
+        name: "historycontent",
+        schema: historyContentSchema,
+        methods: {
+            ...commonProps,
+            ...dateMethods,
+            ...collectionCosmetics
+        }
+    })
+
+    const contentPruner = pruneToSchema(historyContentSchema);
+
+    contentCollection.preInsert(raw => {
+
+        raw.isDeleted = raw.deleted;
+        delete raw.deleted;
+
+        // stupid api does not return purged for collections
+        if (raw.purged === undefined) {
+            raw.purged = false;
+        }
+
+        // Again, stupid api will mark something as purged
+        // but not deleted.
+        if (raw.purged == true) {
+            raw.isDeleted = true;
+        }
+
+        // stupid api does not return update_time for collections
+        if (!raw.update_time) {
+            raw.update_time = moment.utc().format();
+        }
+
+        contentPruner(raw);
+
+    }, false);
+
+    return contentCollection;
+}
+
+async function buildDatasets(db) {
+
+    const datasetCollection = await db.collection({
+        name: "dataset",
+        schema: datasetSchema,
+        methods: {
+            ...commonProps,
+            ...dateMethods,
+
+            getUrl(urlType) {
+                const { id, file_ext } = this;
+                const urls = {
+                    purge: `datasets/${id}/purge_async`,
+                    display: `datasets/${id}/display/?preview=True`,
+                    edit: `datasets/edit?dataset_id=${id}`,
+                    download: `datasets/${id}/display?to_ext=${file_ext}`,
+                    report_error: `dataset/errors?id=${id}`,
+                    rerun: `tool_runner/rerun?id=${id}`,
+                    show_params: `datasets/${id}/show_params`,
+                    visualization: "visualization",
+                    meta_download: `dataset/get_metadata_file?hda_id=${id}&metadata_name=`
+                };
+                return (urlType in urls) ? urls[urlType] : null;
+            },
+        }
+    })
+
+    const datasetPruner = pruneToSchema(datasetSchema);
+
+    datasetCollection.preInsert(raw => {
+        raw.isDeleted = raw.deleted;
+        delete raw.deleted;
+        datasetPruner(raw);
+    }, false);
+
+    return datasetCollection;
+}
+
+async function buildDsc(db) {
+
+    const dscCollection = await db.collection( {
+        name: "datasetcollection",
+        schema: datasetCollectionSchema,
+        methods: {
+            ...commonProps,
+            ...dateMethods,
+            ...collectionCosmetics
+        }
+    })
+
+    const collectionPruner = pruneToSchema(datasetCollectionSchema);
+
+    dscCollection.preInsert(raw => {
+
+        // api returns no type_id for collections
+        if (!raw.type_id) {
+            raw.type_id = `${raw.history_content_type}-${raw.id}`;
+        }
+
+        raw.isDeleted = raw.deleted;
+        delete raw.deleted;
+
+        if (raw.purged === undefined) {
+            raw.purged = false;
+        }
+
+        // dataset collections have no update time, so we keep track of it ourself
+        // TODO: add update_time to hdca table
+        if (!raw.update_time) {
+            raw.update_time = (new Date()).toISOString();
+        }
+
+        collectionPruner(raw);
+
+    }, false);
+
+    return dscCollection;
+}
+
+
+// Model mixins
+
+export const dateMethods = {
+    getUpdateDate() {
+        return moment.utc(this.update_time);
+    }
+}
+
+const commonProps = {
 
     isDeletedOrPurged() {
         return this.isDeleted || this.purged;
@@ -112,12 +262,6 @@ export const commonProps = {
     },
 }
 
-export const dateMethods = {
-    getUpdateDate() {
-        return moment.utc(this.update_time);
-    }
-}
-
 export const collectionCosmetics  = {
 
     collectionType() {
@@ -144,69 +288,3 @@ export const collectionCosmetics  = {
         return count == 1 ? "with 1 item" : `with ${count} items`;
     }
 }
-
-
-// Specific collections
-
-export const history$ = initCollection({
-    name: "history",
-    schema: historySchema,
-    methods: {
-        ...dateMethods
-    }
-})
-
-export const historyContent$ = initCollection({
-    name: "historycontent",
-    schema: historyContentSchema,
-    methods: {
-        ...commonProps,
-        ...dateMethods,
-        ...collectionCosmetics
-    }
-})
-
-export const dataset$ = initCollection({
-    name: "dataset",
-    schema: datasetSchema,
-    methods: {
-        ...commonProps,
-        ...dateMethods,
-
-        getUrl(urlType) {
-            const { id, file_ext } = this;
-            const urls = {
-                purge: `datasets/${id}/purge_async`,
-                display: `datasets/${id}/display/?preview=True`,
-                edit: `datasets/edit?dataset_id=${id}`,
-                download: `datasets/${id}/display?to_ext=${file_ext}`,
-                report_error: `dataset/errors?id=${id}`,
-                rerun: `tool_runner/rerun?id=${id}`,
-                show_params: `datasets/${id}/show_params`,
-                visualization: "visualization",
-                meta_download: `dataset/get_metadata_file?hda_id=${id}&metadata_name=`
-            };
-            return (urlType in urls) ? urls[urlType] : null;
-        },
-    }
-})
-
-export const datasetCollection$ = initCollection({
-    name: "datasetcollection",
-    schema: datasetCollectionSchema,
-    methods: {
-        ...commonProps,
-        ...dateMethods,
-        ...collectionCosmetics
-    }
-})
-
-export const requestTime$ = initCollection({
-    name: "requestTime",
-    schema: requestTimeSchema,
-    methods: {
-        getLastSentDate() {
-            return moment.utc(this.lastSent);
-        }
-    }
-})

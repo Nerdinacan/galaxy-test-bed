@@ -3,10 +3,8 @@ import idb from "pouchdb-adapter-idb";
 
 RxDB.plugin(idb);
 
-// console.log("dev environment, using idb db adapter");
-
 export default {
-    name: "galaxy",
+    name: "galaxyprod",
     adapter: "idb",
     queryChangeDetection: true
 }

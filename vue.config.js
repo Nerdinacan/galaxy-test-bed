@@ -9,7 +9,7 @@ const env = process.env.NODE_ENV;
 module.exports = {
     lintOnSave: false,
     configureWebpack: {
-        devtool: 'source-map'
+        devtool: 'inline-source-map'
     },
     chainWebpack: config => {
 
@@ -17,12 +17,11 @@ module.exports = {
             .prepend(resolve('src'));
 
         const cachePath = "components/History/model/caching";
-        const cacheConfigFile = env == "test" ? "db.test.config.js" : "db.config.js";
 
         config.resolve.alias
             .set('scss', resolve('style/'))
             .set('theme', resolve('style/theme/'))
-            .set(`${cachePath}/config`, `${cachePath}/${cacheConfigFile}`);
+            .set(`${cachePath}/config`, `${cachePath}/config/${env}.config.js`);
 
         const babelOptions = {
             ignore: [

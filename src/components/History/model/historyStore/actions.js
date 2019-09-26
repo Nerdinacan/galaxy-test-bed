@@ -20,7 +20,10 @@ export function $init({ commit }, { store }) {
     // transfers changing results of indexDB contents to the vuex store
     // so we can maintain the fiction that Vuex has a reason to be here
     HistoryCache$.subscribe({
-        next: list => commit("setHistories", list),
+        next: list => {
+            console.log("histories?", list.length, list);
+            commit("setHistories", list);
+        },
         error: err => console.warn("Histories$, error", err)
     })
 }
@@ -49,23 +52,3 @@ export function unselectContentItem({ getters, commit }, { content }) {
 }
 
 // #endregion
-
-
-// #region Content CRUD and operations
-
-export async function deleteContent(_, { content }) {
-    console.log("deleteContent");
-    // const doomed = await deleteContent(content);
-    // const cacheMe = createPromiseFromOperator(cacheContent);
-    // return await cacheMe(doomed);
-}
-
-export async function undeleteContent(_, { content }) {
-    console.log("undeleteContent");
-    // const undeleted = await undeleteContent(content);
-    // const cacheMe = createPromiseFromOperator(cacheContent);
-    // return await cacheMe(undeleted);
-}
-
-// #endregion
-

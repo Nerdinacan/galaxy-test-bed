@@ -8,7 +8,7 @@ import historySchema from "./schema/history.schema";
 import historyContentSchema from "./schema/historyContent.schema";
 import datasetSchema from "./schema/dataset.schema";
 import datasetCollectionSchema from "./schema/datasetCollection.schema";
-import conformToSchema from "./conformToSchema";
+import { conformToSchema } from "./schemaUtils";
 import moment from "moment";
 
 
@@ -94,9 +94,6 @@ export function prepareDatasetCollection(raw) {
     if (!raw.update_time) {
         dsc.update_time = (new Date()).toISOString();
     }
-
-    console.log("raw", raw);
-    console.log("prepared", dsc);
 
     return dsc;
 }

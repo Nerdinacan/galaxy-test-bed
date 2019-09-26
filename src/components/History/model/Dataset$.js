@@ -1,6 +1,6 @@
 import { of, zip, pipe, combineLatest, forkJoin, from } from "rxjs";
 import { tap, filter, map, pluck, share, take } from "rxjs/operators";
-import { getCachedContent, getCachedDataset, cacheDataset, updateDocFields } from "./caching";
+import { getContent, getDataset, cacheDataset, updateDocFields } from "./caching/operators";
 import { ajaxGet } from "utils/observable";
 import { safeAssign } from "utils/safeAssign";
 import { updateContentFields } from "./queries";
@@ -18,7 +18,7 @@ export function Dataset$(content$) {
     // typically one of the "getCachedX" functions
     const lookupFn = () => pipe(
         pluck('id'),
-        getCachedDataset({ live: false })
+        getDataset({ live: false })
     );
 
     return content$.pipe(
@@ -28,7 +28,7 @@ export function Dataset$(content$) {
             storeFn: cacheDataset
         })),
         pluck("id"),
-        getCachedDataset(),
+        getDataset(),
     )
 }
 
@@ -78,11 +78,11 @@ export const checkForUpdates = config => c => {
 
 export function updateDataset(data, inputFields) {
 
-    const data$ = of(data);
+    const item$ = of(data);
 
-    const content$ = data$.pipe(
+    const content$ = item$.pipe(
         pluck('type_id'),
-        getCachedContent({ live: false })
+        getContent({ live: false })
     )
 
     // ajax call to update fields
@@ -97,7 +97,7 @@ export function updateDataset(data, inputFields) {
     )
 
     // cache in dataset/datasetCollection rxdb collection
-    const cachedData$ = combineLatest(data$, savedFields$).pipe(
+    const cachedData$ = combineLatest(item$, savedFields$).pipe(
         updateDocFields()
     )
 

@@ -1,6 +1,6 @@
 import { pluck, share } from "rxjs/operators";
 import { poll } from "utils/observable";
-import { cacheContent } from "../caching";
+import { cacheContent } from "../caching/operators";
 
 import { contentObservable } from "./contentObservable";
 import { loadManualRequests } from "./loadManualRequests";

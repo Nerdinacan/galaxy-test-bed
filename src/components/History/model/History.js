@@ -4,19 +4,21 @@ import { split, createInputFunction } from "utils/observable";
 import moment from "moment";
 
 import {
-    history$ as historyCollection$,
-    withLatestFromDb,
     cacheHistory,
-    deleteHistory as wipeCachedHistory
-} from "./caching";
+    uncacheHistory
+} from "./caching/operators";
+
+import {
+    getCollection
+} from "./caching/db";
 
 import {
     getHistories,
-    createHistory,
-    deleteHistoryById,
-    cloneHistory,
-    secureHistory,
-    updateHistoryFields as updateProps
+    // createHistory,
+    // deleteHistoryById,
+    // cloneHistory,
+    // secureHistory,
+    // updateHistoryFields as updateProps
 } from "./queries";
 
 
@@ -42,8 +44,8 @@ export const HistoryCache = () => userId$ => {
     return new Observable(observer => {
         const sub = Histories$.subscribe(observer);
         const updateSub = update$.subscribe({
-            // next: update => console.log("history update", update),
-            error: err => console.warn("error updating history", err)
+            // next: update => console.log("history update", update.id),
+            error: err => console.warn("error updating history", err.message)
         });
         sub.add(updateSub);
         return sub;
@@ -55,8 +57,9 @@ export const HistoryCache = () => userId$ => {
 // objects from indexDB. createInputFunction creates a function that when
 // run, emits the value on an attached observable (.$)
 
-export const addToHistoryCache = createInputFunction();
+export const addHistoryToCache = createInputFunction();
 export const deleteHistoryFromCache = createInputFunction();
+
 
 
 // generates live query of histories for a user id
@@ -64,14 +67,20 @@ export const deleteHistoryFromCache = createInputFunction();
 
 export const buildLiveHistoryQuery = () => pipe(
     historyCacheQuery(),
+    tap(query => console.log("query", query.mquery)),
     switchMap(query => query.$), // live updates
-    tap(async docs => {
-        if (!docs.length) {
-            // if no results, need to generate a new one
-            const freshHistory = await createHistory();
-            addToHistoryCache(freshHistory);
-        }
-    }),
+    // filter out local rxdb records that have been flagged for deletion
+    map(docs => docs.filter(c => !c.deleted)),
+    // tap(async docs => {
+    //     if (!docs.length) {
+    //         // if no results, need to generate a new one
+    //         const freshHistory = await createHistory();
+    //         if (freshHistory) {
+    //             console.log("making new history");
+    //             addHistoryToCache(freshHistory);
+    //         }
+    //     }
+    // }),
     filter(docs => docs.length),
     map(docs => docs.map(d => d.toJSON()))
 )
@@ -81,14 +90,12 @@ export const buildLiveHistoryQuery = () => pipe(
 // source stream: observable user id
 
 export const historyCacheQuery = (config = {}) => {
-
-    const {
-        collection = historyCollection$,
-    } = config;
-
+    const { collName = 'history' } = config;
     return pipe(
-        withLatestFromDb(collection),
-        map(([id, coll]) => coll.find().where("user_id").eq(id))
+        mergeMap(async userId => {
+            const coll = await getCollection(collName);
+            return coll.find().where("user_id").eq(userId);
+        })
     )
 }
 
@@ -99,19 +106,18 @@ export const historyCacheQuery = (config = {}) => {
 
 export const buildUpdateStreams = () => userId$ => {
 
-    // load histories by user id
     const loadedHistories$ = userId$.pipe(
-        loadUserHistories()
+        loadUserHistories(),
+        split()
     )
 
-    // added histories get cached
-    const add$ = merge(loadedHistories$, addToHistoryCache.$).pipe(
+    const add$ = merge(loadedHistories$, addHistoryToCache.$).pipe(
+        tap(h => console.log("before cache history", h)),
         cacheHistory()
     )
 
-    // removed histories get wiped
     const remove$ = deleteHistoryFromCache.$.pipe(
-        wipeCachedHistory()
+        uncacheHistory()
     )
 
     return merge(add$, remove$);
@@ -122,15 +128,14 @@ export const buildUpdateStreams = () => userId$ => {
 
 export const loadUserHistories = () => pipe(
     historyCacheQuery(),
-    mergeMap(loadFreshHistories),
-    split()
+    mergeMap(loadFreshHistories)
 )
 
 
 // load fresh history, checks existing histories for
 // latest update_time and only loads newer data
 
-export const loadFreshHistories = async (rxdbQuery) => {
+export async function loadFreshHistories(rxdbQuery) {
     const existing = await rxdbQuery.exec();
     const updateTime = historyLastChanged(existing);
     return await getHistories(updateTime);
@@ -149,39 +154,48 @@ export const historyLastChanged = list => {
 }
 
 
-
 /**
- * History operatons
+ * History CRUD operations
  * Not in store because they don't touch the state directly.
- * Updates happen through the direct subscription to HistoryCache
+ * Just do the ajax and dump the new history into the appropriate
+ * queue (addHistoryToCache or deleteHistoryFromCache)
  */
 
+// #region operations
+
 export async function createNewHistory() {
-    const newHistory = await createHistory();
-    addToHistoryCache(newHistory);
-    return newHistory;
+    console.log("createNewHistory");
+    // const newHistory = await createHistory();
+    // addHistoryToCache(newHistory);
+    // return newHistory;
 }
 
 export async function copyHistory(history, name, copyWhat) {
-    const newHistory = await cloneHistory(history, name, copyWhat);
-    addToHistoryCache(newHistory);
-    return newHistory;
+    console.log("copyHistory");
+    // const newHistory = await cloneHistory(history, name, copyWhat);
+    // addHistoryToCache(newHistory);
+    // return newHistory;
 }
 
 export async function deleteHistory(history, purge = false) {
-    await deleteHistoryById(history.id, purge);
-    deleteHistoryFromCache(history);
-    return history;
+    console.log("deleteHistory");
+    // await deleteHistoryById(history.id, purge);
+    // deleteHistoryFromCache(history);
+    // return history;
 }
 
 export async function makeHistoryPrivate(history) {
-    const newHistory = await secureHistory(history.id);
-    addToHistoryCache(newHistory);
-    return newHistory;
+    console.log("makeHistoryPrivate");
+    // const newHistory = await secureHistory(history.id);
+    // addHistoryToCache(newHistory);
+    // return newHistory;
 }
 
 export async function updateHistoryFields(history, fields) {
-    const updatedHistory = await updateProps(history, fields);
-    addToHistoryCache(updatedHistory);
-    return updatedHistory;
+    console.log("updateHistoryFields");
+    // const updatedHistory = await updateProps(history, fields);
+    // addHistoryToCache(updatedHistory);
+    // return updatedHistory;
 }
+
+// #endregion

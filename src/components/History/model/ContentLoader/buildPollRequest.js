@@ -6,7 +6,7 @@
 import { of, pipe } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 import { createInputFunction, ajaxGet, firstItem, operateOnArray } from "utils/observable";
-import { getCachedHistory, cacheContent, cacheHistory } from "../caching";
+import { getHistory, cacheContent, cacheHistory } from "../caching/operators";
 import moment from "moment";
 
 
@@ -21,7 +21,7 @@ export const stopPolling = createInputFunction();
  * @param {string} id History Id
  */
 export const buildPollRequest = historyId => of(historyId).pipe(
-    getCachedHistory({ debug: true, live: false }),
+    getHistory({ debug: true, live: false }),
     refreshHistory(),
     loadContentForHistory(),
     takeUntil(stopPolling.$)

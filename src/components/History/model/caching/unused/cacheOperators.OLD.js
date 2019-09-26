@@ -1,6 +1,12 @@
+/**
+ * Exposes caching operations as rxjs operators for
+ * use in the streams which run polling, manual
+ * requesting and live query generation.
+ */
+
 import { pipe, of, from } from "rxjs";
 import { tap, pluck, map, reduce, mergeMap } from "rxjs/operators";
-import { history$, historyContent$, dataset$, datasetCollection$, requestTime$ } from "./db";
+import { history$, historyContent$, dataset$, datasetCollection$ } from "./db";
 import { prepareHistory, prepareContentSummary,
     prepareDataset, prepareDatasetCollection } from "./prepare";
 import { getItem, setItem, deleteItem } from "./genericOperators";
@@ -92,20 +98,4 @@ export const loadContentByTypeIds = () => pipe(
     mergeMap(contentArray => from(contentArray)),
     getCachedContent({ live: false }),
     reduce((acc, content) => ([...acc, content]), [])
-)
-
-
-
-// Request dates, used in manual loading
-
-export const getLastRequestDate = (config = {}) => pipe(
-    getItem({ ...config, live: false, collection$: requestTime$ }),
-    pluck('lastSent')
-)
-
-export const setLastRequestDate = (config = {}) => pipe(
-    tap(thing => {
-        console.log("setLastRequestDate", thing);
-    }),
-    setItem({ ...config, collection$: requestTime$ })
 )

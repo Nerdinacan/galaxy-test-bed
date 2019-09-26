@@ -150,7 +150,7 @@ import {
 } from "../model/queries";
 
 import {
-    createPromiseFromOperator,
+    // createPromiseFromOperator,
     cacheContent
 } from "../model/caching";
 
@@ -375,8 +375,8 @@ export default {
         // cache list of stuff we changed
         async cacheChangedContent(changed = []) {
             if (changed.length) {
-                const cacheFn = createPromiseFromOperator(cacheContent);
-                return await Promise.all(changed.map(async c => await cacheFn(c)));
+                // const cacheFn = createPromiseFromOperator(cacheContent);
+                // return await Promise.all(changed.map(async c => await cacheFn(c)));
             }
             return [];
         },

@@ -105,7 +105,7 @@
 <script>
 
 // import { getGalaxyInstance } from "app";
-import { mapActions, mapGetters } from "vuex";
+import { mapGetters } from "vuex";
 import { prependPath, iframeRedirect } from "utils/redirect";
 import messages from "../messages";
 import STATES from "../model/states";
@@ -113,6 +113,14 @@ import STATES from "../model/states";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "components/GearMenu";
 import ToolHelpModal from "../ToolHelpModal";
+
+import {
+    deleteContent as deleteContentFromServer,
+    undeleteContent as undeleteContentFromServer
+} from "../model/queries";
+
+import { cacheContent } from "../model/caching";
+
 
 // import { bbRoute, useGalaxy } from "legacyAdapter";
 
@@ -302,11 +310,6 @@ export default {
     },
     methods: {
 
-        ...mapActions("history", [
-            "deleteContent",
-            "undeleteContent"
-        ]),
-
         // we have two sources of data so when looking for a value
         // we might have to check both places, giving dataset priority
         dataProp(propName) {
@@ -352,12 +355,16 @@ export default {
             });
         },
 
-        deleteDataset() {
-            this.deleteContent({ content: this.content });
+        async deleteDataset() {
+            const doomed = await deleteContentFromServer(this.content);
+            const cached = await cacheContent(doomed);
+            return cached;
         },
 
-        undeleteDataset() {
-            this.undeleteContent({ content: this.content });
+        async undeleteDataset() {
+            const undeleted = await undeleteContentFromServer(this.content);
+            const cached = await cacheContent(undeleted);
+            return cached;
         },
 
         reportError() {
