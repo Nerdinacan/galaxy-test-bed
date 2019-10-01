@@ -69,7 +69,7 @@ npm run serve
 npm run proxy
 ```
 
-Now the components you're building or other code you want to test in the ./src folder and manipulate App.vue and main.js until it
+Now put the components you're building or other code you want to test in the ./src folder and manipulate App.vue and main.js until it
 launches to your satisfaction.
 
 
