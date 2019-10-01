@@ -10,10 +10,9 @@ do
     esac
 done
 
-echo "$(pwd)"
+echo "Starting proxy";
 
 docker run --rm \
-    -d \
     -p 80:80 \
     -v "$(pwd)/proxy/testbed.conf:/etc/nginx/nginx.conf:ro" \
     -v "${GALAXYPATH}/static:/usr/share/nginx/html/static" \

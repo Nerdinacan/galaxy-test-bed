@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "help": "vue-cli-service help test:unit",
-    "serve": "npm run proxy $$ vue-cli-service serve --port=8081",
+    "serve": "vue-cli-service serve --port=8081",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test:unit": "vue-cli-service test:unit --watch",
