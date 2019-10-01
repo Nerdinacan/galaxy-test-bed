@@ -112,7 +112,6 @@ export const buildUpdateStreams = () => userId$ => {
     )
 
     const add$ = merge(loadedHistories$, addHistoryToCache.$).pipe(
-        tap(h => console.log("before cache history", h)),
         cacheHistory()
     )
 

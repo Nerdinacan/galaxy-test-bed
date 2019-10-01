@@ -7,7 +7,6 @@ import { getCollection } from "./db";
 
 
 async function save(collName, raw = {}) {
-    console.log("save", collName, raw);
     let props = isRxDocument(raw) ? raw.toJSON() : raw;
     const collection = await getCollection(collName);
     const saveResult = await collection.upsert(props);

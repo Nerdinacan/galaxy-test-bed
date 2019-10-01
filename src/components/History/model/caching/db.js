@@ -39,27 +39,21 @@ export async function wipeDatabase() {
 
 
 // db operators
-// Because the api is promise based, need to defer and
-// share the db instance, which is wierd because the library
-// has the word "rx" in the name implying that the author
-// knew something about observables.
+// Because the api is promise-based, need to defer and
+// share the db instance
 
 const db$ = defer(getDb).pipe(share());
 
 export function getCollection(collectionName) {
     return db$.pipe(
         pluck(collectionName),
-        take(1),
-        // tap(coll => console.log("getCollection", collectionName, coll))
+        take(1)
     ).toPromise();
 }
 
 
 
 // DB assembly. One big promise that delivers the database instance
-// I previously built individual collection observables for each of the db
-// collections and although that had its advantages, it added a lot of
-// complexity that probably isn't unnecessary
 
 async function buildDb() {
     const db = await create(dbConfig);
