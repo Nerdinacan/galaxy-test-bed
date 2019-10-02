@@ -1,3 +1,4 @@
+import { Observable } from "rxjs";
 import { pluck, share } from "rxjs/operators";
 import { poll } from "utils/observable";
 import { cacheContent } from "../caching/operators";
@@ -7,12 +8,6 @@ import { loadManualRequests } from "./loadManualRequests";
 import { buildPollRequest } from "./buildPollRequest";
 
 export { stopPolling } from "./buildPollRequest";
-
-
-// import { create } from "rxjs-spy";
-// import { tag } from "rxjs-spy/operators";
-// const spy = create();
-// spy.log();
 
 
 /**
@@ -41,15 +36,16 @@ export { stopPolling } from "./buildPollRequest";
  * Sets up subscription to 3 key observables for the history component.
  * @param {Observable} p$ Incoming parameter stream
  */
-export function ContentLoader(incomingParam$, config = {}) {
 
-    // you can stop manual loading or polling during debugging
+export const ContentLoader = (config = {}) => incomingParam$ => {
+
     const {
         suppressPolling = false,
         suppressManualLoad = false,
         debug = false
     } = config;
 
+    // share this
     const param$ = incomingParam$.pipe(
         share()
     )
@@ -57,8 +53,7 @@ export function ContentLoader(incomingParam$, config = {}) {
     // observable that renders content in the list, just
     // stares directly at the db for this history
     const content$ = param$.pipe(
-        contentObservable({ debug }),
-        share()
+        contentObservable({ debug })
     )
 
     // ajax requests instantiated by filtering/pagination changes
@@ -75,20 +70,21 @@ export function ContentLoader(incomingParam$, config = {}) {
         poll({ buildPollRequest })
     )
 
-    // group subscription
-    function subscribe(/* next, error, complete */) {
+    return new Observable(observer => {
 
         // Standard subscribe handlers apply to content observable,
         // but we also subscribe to the manual/polling observables
         // to keep them running while the history panel is open
-        const sub = content$.subscribe(...arguments);
+        const sub = content$.subscribe(observer);
 
         // when params change, loads next page/params
         if (!suppressManualLoad) {
             const manualSub = manual$.subscribe({
                 // next: val => console.log("manual result", val),
                 complete: () => console.log("manual complete"),
-                error: err => console.warn("manual err", err)
+                error: err => {
+                    if (err.rxdb) rxdbErrorHandler(err);
+                }
             });
             sub.add(manualSub);
         }
@@ -96,17 +92,46 @@ export function ContentLoader(incomingParam$, config = {}) {
         // catches non-ui updates to history. Server side changes, etc.
         if (!suppressPolling) {
             const pollSub = polling$.subscribe({
-                complete: () => console.log("polling complete"),
-                error: err => console.warn("polling err", err)
+                // complete: () => console.log("polling complete"),
+                error: err => {
+                    if (err.rxdb) rxdbErrorHandler(err);
+                }
             });
             sub.add(pollSub);
         }
 
-        return sub;
-    }
+        return function() {
+            if (sub) {
+                sub.unsubscribe();
+            }
+        }
+    })
 
-    return {
-        subscribe
-    }
 }
 
+
+// Make error more useful since the author of RxDB coulnd't be bothered.
+
+function rxdbErrorHandler(err) {
+
+    console.groupCollapsed("rxdbErrorHandler");
+    console.dir(err);
+    console.groupEnd();
+
+    const { obj, schema } = err.parameters;
+
+    if (obj && schema && schema.properties) {
+
+        console.warn(`schema mismatch in ${schema.title}?`);
+
+        const objectKeys = Object.keys(obj);
+        const schemaKeys = Object.keys(schema.properties);
+
+        const diff1 = objectKeys.filter(x => !schemaKeys.includes(x));
+        console.log("keys in object, not in schema", diff1);
+
+        const diff2 = schemaKeys.filter(x => !objectKeys.includes(x));
+        console.log("keys in schema, not in object", diff2);
+    }
+
+}

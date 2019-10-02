@@ -70,7 +70,7 @@ describe("caching/caching.js: caching promise functions", () => {
         it("uncacheHistory", async() => {
             const doc = await cacheHistory(sample);
             expect(isRxDocument(doc)).to.be.true;
-            const deletedDoc = await uncacheHistory(doc.id);
+            const deletedDoc = await uncacheHistory(doc);
             expect(isRxDocument(deletedDoc)).to.be.true;
             expect(deletedDoc.deleted).to.be.true;
             const doc2 = await getHistory(sample.id);
@@ -126,7 +126,7 @@ describe("caching/caching.js: caching promise functions", () => {
         it("uncacheContent", async() => {
             const doc = await cacheContent(sample);
             expect(isRxDocument(doc)).to.be.true;
-            const deletedDoc = await uncacheContent(doc.type_id);
+            const deletedDoc = await uncacheContent(doc);
             expect(isRxDocument(deletedDoc)).to.be.true;
             expect(deletedDoc.deleted).to.be.true;
             const doc2 = await getContent(sample.id);
@@ -182,7 +182,7 @@ describe("caching/caching.js: caching promise functions", () => {
         it("uncacheDataset", async() => {
             const doc = await cacheDataset(sample);
             expect(isRxDocument(doc)).to.be.true;
-            const deletedDoc = await uncacheDataset(doc.id);
+            const deletedDoc = await uncacheDataset(doc);
             expect(isRxDocument(deletedDoc)).to.be.true;
             expect(deletedDoc.deleted).to.be.true;
             const doc2 = await getDataset(sample.id);
@@ -238,7 +238,7 @@ describe("caching/caching.js: caching promise functions", () => {
         it("uncacheDatasetCollection", async() => {
             const doc = await cacheDatasetCollection(sample);
             expect(isRxDocument(doc)).to.be.true;
-            const deletedDoc = await uncacheDatasetCollection(doc.id);
+            const deletedDoc = await uncacheDatasetCollection(doc);
             expect(isRxDocument(deletedDoc)).to.be.true;
             expect(deletedDoc.deleted).to.be.true;
             const doc2 = await getDataset(sample.id);

@@ -1,5 +1,5 @@
 import { pipe, merge, Observable } from "rxjs";
-import { tap, filter, map, switchMap, mergeMap } from "rxjs/operators";
+import { tap, filter, map, switchMap, mergeMap, pluck } from "rxjs/operators";
 import { split, createInputFunction } from "utils/observable";
 import moment from "moment";
 
@@ -14,11 +14,11 @@ import {
 
 import {
     getHistories,
-    // createHistory,
-    // deleteHistoryById,
-    // cloneHistory,
-    // secureHistory,
-    // updateHistoryFields as updateProps
+    createHistory,
+    deleteHistoryById,
+    cloneHistory,
+    secureHistory,
+    updateHistoryFields as updateProps
 } from "./queries";
 
 
@@ -153,6 +153,8 @@ export const historyLastChanged = list => {
 }
 
 
+
+
 /**
  * History CRUD operations
  * Not in store because they don't touch the state directly.
@@ -160,41 +162,38 @@ export const historyLastChanged = list => {
  * queue (addHistoryToCache or deleteHistoryFromCache)
  */
 
-// #region operations
-
 export async function createNewHistory() {
     console.log("createNewHistory");
-    // const newHistory = await createHistory();
-    // addHistoryToCache(newHistory);
-    // return newHistory;
+    const newHistory = await createHistory();
+    addHistoryToCache(newHistory);
+    return newHistory;
 }
 
 export async function copyHistory(history, name, copyWhat) {
     console.log("copyHistory");
-    // const newHistory = await cloneHistory(history, name, copyWhat);
-    // addHistoryToCache(newHistory);
-    // return newHistory;
+    const newHistory = await cloneHistory(history, name, copyWhat);
+    addHistoryToCache(newHistory);
+    return newHistory;
 }
 
 export async function deleteHistory(history, purge = false) {
     console.log("deleteHistory");
-    // await deleteHistoryById(history.id, purge);
-    // deleteHistoryFromCache(history);
-    // return history;
+    const doomed = await deleteHistoryById(history.id, purge);
+    console.log("doomed", doomed);
+    deleteHistoryFromCache(doomed);
+    return doomed;
 }
 
 export async function makeHistoryPrivate(history) {
     console.log("makeHistoryPrivate");
-    // const newHistory = await secureHistory(history.id);
-    // addHistoryToCache(newHistory);
-    // return newHistory;
+    const newHistory = await secureHistory(history.id);
+    addHistoryToCache(newHistory);
+    return newHistory;
 }
 
 export async function updateHistoryFields(history, fields) {
     console.log("updateHistoryFields");
-    // const updatedHistory = await updateProps(history, fields);
-    // addHistoryToCache(updatedHistory);
-    // return updatedHistory;
+    const updatedHistory = await updateProps(history, fields);
+    addHistoryToCache(updatedHistory);
+    return updatedHistory;
 }
-
-// #endregion

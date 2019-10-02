@@ -1,6 +1,4 @@
 <template>
-    <!-- need to emit a clicked event because Bootstrap's
-        popover doesn't work as advertised -->
     <div class="gear-menu" ref="menu" @click="$emit('clicked', $event)">
         <slot :go="go" :iframeGo="iframeGo"
             :backboneGo="backboneGo"

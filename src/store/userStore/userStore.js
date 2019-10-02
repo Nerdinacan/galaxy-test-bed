@@ -7,16 +7,20 @@ const state = {
 
 const getters = {
 
+    // Store user as plain json props so we can
+    // persist it easily in localStorage or something,
+    // hydrate with model object using the getter
     currentUser(state) {
-        if (!state.currentUser) {
+        let userProps = state.currentUser;
+        if (!userProps) {
             // TODO: remove when we no longer use the galaxy instance
             try {
-                return window.Galaxy.user;
+                userProps = window.Galaxy.user;
             } catch(err) {
                 console.warn(err);
             }
         }
-        return state.currentUser;
+        return User.create(userProps);
     },
 
     hasUser(state, getters) {
@@ -34,8 +38,7 @@ const mutations = {
 
 const actions = {
     async $init({ commit }) {
-        const rawUser = await getCurrentUser();
-        const user = User.create(rawUser);
+        const user = await getCurrentUser();
         commit("setCurrentUser", user);
     }
 }

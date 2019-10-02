@@ -26,7 +26,10 @@ async function getByPk(collName, key) {
     return (doc && !doc.deleted) ? doc : null;
 }
 
-async function wipeByPk(collName, key) {
+async function uncacheItem(collName, item) {
+    const collection = await getCollection(collName);
+    const keyfield = collection.schema.primaryPath;
+    const key = item[keyfield];
     const doc = await getByPk(collName, key);
     if (!isRxDocument(doc)) {
         throw new Error(`Document cannot be deleted from ${collName} because ${key} doesn't exist.`, key);
@@ -46,24 +49,24 @@ async function newDoc(collName, props = {}) {
 
 // history
 export const newHistory = props => newDoc("history", props);
-export const cacheHistory = raw => save("history", raw);
+export const cacheHistory = item => save("history", item);
 export const getHistory = id => getByPk("history", id);
-export const uncacheHistory = id => wipeByPk("history", id);
+export const uncacheHistory = item => uncacheItem("history", item);
 
 // content
 export const newContent = props => newDoc("historycontent", props);
-export const cacheContent = raw => save("historycontent", raw);
+export const cacheContent = item => save("historycontent", item);
 export const getContent = type_id => getByPk("historycontent", type_id);
-export const uncacheContent = type_id => wipeByPk("historycontent", type_id);
+export const uncacheContent = item => uncacheItem("historycontent", item);
 
 // datasets
 export const newDataset = props => newDoc("dataset", props);
-export const cacheDataset = raw => save("dataset", raw);
+export const cacheDataset = item => save("dataset", item);
 export const getDataset = id => getByPk("dataset", id);
-export const uncacheDataset = id => wipeByPk("dataset", id);
+export const uncacheDataset = item => uncacheItem("dataset", item);
 
 // dataset collections
 export const newDatasetCollection = props => newDoc("datasetcollection", props);
-export const cacheDatasetCollection = raw => save("datasetcollection", raw);
+export const cacheDatasetCollection = item => save("datasetcollection", item);
 export const getDatasetCollection = id => getByPk("datasetcollection", id);
-export const uncacheDatasetCollection = id => wipeByPk("datasetcollection", id);
+export const uncacheDatasetCollection = item => uncacheItem("datasetcollection", item);

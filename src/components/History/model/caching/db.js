@@ -9,8 +9,8 @@
  */
 
 import { defer } from "rxjs";
-import { share, take, pluck } from "rxjs/operators";
-import { create } from "rxdb";
+import { share, take, pluck, mergeMap, retryWhen } from "rxjs/operators";
+import { create, removeDatabase } from "rxdb";
 import { historySchema, historyContentSchema, datasetSchema, datasetCollectionSchema } from "./schema";
 import { pruneToSchema } from "./schemaUtils";
 import moment from "moment";
@@ -22,41 +22,60 @@ import dbConfig from "components/History/model/caching/config";
 
 let _db = null;
 
-export async function getDb() {
+export async function getDb(rebuild = false) {
     if (!_db) {
-        _db = await buildDb();
+        _db = await buildDb(rebuild);
     }
     return _db;
 }
 
 export async function wipeDatabase() {
-    if (_db) {
-        await _db.remove();
-        _db = null;
-    }
-    return _db;
+    const { name, adapter } = dbConfig;
+    const result = await removeDatabase(name, adapter);
+    _db = null;
+    return result;
+}
+
+export async function rebuildDatabase() {
+    await wipeDatabase();
+    return await getDb(true);
 }
 
 
 // db operators
-// Because the api is promise-based, need to defer and
-// share the db instance
+// Because the api is promise-based, need to defer and share the db instance
 
-const db$ = defer(getDb).pipe(share());
+const db$ = defer(() => getDb()).pipe(
+    retryWhen(err => err.pipe(
+        mergeMap(rebuildDatabase)
+    )),
+    share()
+);
 
-export function getCollection(collectionName) {
-    return db$.pipe(
-        pluck(collectionName),
-        take(1)
-    ).toPromise();
-}
+
+// operator to return collection
+
+export const getCollection$ = name => db$.pipe(
+    pluck(name),
+    retryWhen(err => err.pipe(
+        mergeMap(rebuildDatabase)
+    )),
+    share()
+)
+
+
+// promise function to return collection
+
+export const getCollection = name => getCollection$(name).toPromise();
+
 
 
 
 // DB assembly. One big promise that delivers the database instance
 
-async function buildDb() {
-    const db = await create(dbConfig);
+async function buildDb(rebuild = false) {
+    const config = rebuild ? { ...dbConfig, ignoreDuplicate: true } : dbConfig;
+    const db = await create(config);
     await buildHistory(db);
     await buildContent(db);
     await buildDatasets(db);
@@ -66,7 +85,7 @@ async function buildDb() {
 
 async function buildHistory(db) {
 
-    const historyCollection = await db.collection({
+    const coll = await db.collection({
         name: "history",
         schema: historySchema,
         methods: {
@@ -78,20 +97,19 @@ async function buildHistory(db) {
 
     const prepareHistory = raw => {
         raw.isDeleted = raw.deleted;
-        delete raw.deleted;
         historyPruner(raw);
     }
 
-    historyCollection.preInsert(prepareHistory, false);
-    historyCollection.preSave(prepareHistory, false);
+    coll.preInsert(prepareHistory, false);
+    coll.preSave(prepareHistory, false);
 
-    return historyCollection;
+    return coll;
 }
 
 async function buildContent(db) {
 
     // content collection
-    const contentCollection = await db.collection({
+    const coll = await db.collection({
         name: "historycontent",
         schema: historyContentSchema,
         methods: {
@@ -101,12 +119,11 @@ async function buildContent(db) {
         }
     })
 
-    const contentPruner = pruneToSchema(historyContentSchema);
+    const pruner = pruneToSchema(historyContentSchema);
 
-    contentCollection.preInsert(raw => {
+    const prepareContent = raw => {
 
         raw.isDeleted = raw.deleted;
-        delete raw.deleted;
 
         // stupid api does not return purged for collections
         if (raw.purged === undefined) {
@@ -124,16 +141,18 @@ async function buildContent(db) {
             raw.update_time = moment.utc().format();
         }
 
-        contentPruner(raw);
+        pruner(raw);
+    }
 
-    }, false);
+    coll.preInsert(prepareContent, false);
+    coll.preSave(prepareContent, false);
 
-    return contentCollection;
+    return coll;
 }
 
 async function buildDatasets(db) {
 
-    const datasetCollection = await db.collection({
+    const coll = await db.collection({
         name: "dataset",
         schema: datasetSchema,
         methods: {
@@ -158,20 +177,22 @@ async function buildDatasets(db) {
         }
     })
 
-    const datasetPruner = pruneToSchema(datasetSchema);
+    const pruner = pruneToSchema(datasetSchema);
 
-    datasetCollection.preInsert(raw => {
+    const prepareDataset = raw => {
         raw.isDeleted = raw.deleted;
-        delete raw.deleted;
-        datasetPruner(raw);
-    }, false);
+        pruner(raw);
+    }
 
-    return datasetCollection;
+    coll.preInsert(prepareDataset, false);
+    coll.preSave(prepareDataset, false);
+
+    return coll;
 }
 
 async function buildDsc(db) {
 
-    const dscCollection = await db.collection( {
+    const coll = await db.collection( {
         name: "datasetcollection",
         schema: datasetCollectionSchema,
         methods: {
@@ -181,9 +202,9 @@ async function buildDsc(db) {
         }
     })
 
-    const collectionPruner = pruneToSchema(datasetCollectionSchema);
+    const pruner = pruneToSchema(datasetCollectionSchema);
 
-    dscCollection.preInsert(raw => {
+    const prepareDsc = raw => {
 
         // api returns no type_id for collections
         if (!raw.type_id) {
@@ -191,7 +212,6 @@ async function buildDsc(db) {
         }
 
         raw.isDeleted = raw.deleted;
-        delete raw.deleted;
 
         if (raw.purged === undefined) {
             raw.purged = false;
@@ -203,11 +223,13 @@ async function buildDsc(db) {
             raw.update_time = (new Date()).toISOString();
         }
 
-        collectionPruner(raw);
+        pruner(raw);
+    }
 
-    }, false);
+    coll.preInsert(prepareDsc, false);
+    coll.preSave(prepareDsc, false);
 
-    return dscCollection;
+    return coll;
 }
 
 
@@ -239,6 +261,7 @@ const commonProps = {
         let result = name;
 
         const itemStates = [];
+
         if (isDeleted) {
             itemStates.push("Deleted");
         }
@@ -253,10 +276,10 @@ const commonProps = {
         }
 
         return result;
-    },
+    }
 }
 
-export const collectionCosmetics  = {
+export const collectionCosmetics = {
 
     collectionType() {
         if (!this.collection_type) {
@@ -275,10 +298,8 @@ export const collectionCosmetics  = {
     },
 
     collectionCount() {
-        if (!this.element_count) {
-            return null;
-        }
         const count = this.element_count;
+        if (!count) return null;
         return count == 1 ? "with 1 item" : `with ${count} items`;
     }
 }

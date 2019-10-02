@@ -105,7 +105,6 @@ describe("cache/operators.js: rxjs operators", () => {
                 of (testData).pipe(
                     cacheHistory(),
                     tap(wasCached),
-                    pluck('id'),
                     uncacheHistory(),
                     tap(wasDeleted),
                     mapTo(testData.id),
@@ -144,7 +143,7 @@ describe("cache/operators.js: rxjs operators", () => {
 
     })
 
-    xdescribe("content", () => {
+    describe("content", () => {
 
         const testData = testContent;
 
@@ -224,7 +223,6 @@ describe("cache/operators.js: rxjs operators", () => {
                 of (testData).pipe(
                     cacheContent(),
                     tap(wasCached),
-                    pluck('type_id'),
                     uncacheContent(),
                     tap(wasDeleted),
                     mapTo(testData.id),
@@ -261,7 +259,7 @@ describe("cache/operators.js: rxjs operators", () => {
         })
     })
 
-    xdescribe("dataset", () => {
+    describe("dataset", () => {
 
         const testData = testDataset;
 
@@ -342,7 +340,6 @@ describe("cache/operators.js: rxjs operators", () => {
                 of (testData).pipe(
                     cacheDataset(),
                     tap(wasCached),
-                    pluck('id'),
                     uncacheDataset(),
                     tap(wasDeleted),
                     mapTo(testData.id),
@@ -381,7 +378,7 @@ describe("cache/operators.js: rxjs operators", () => {
 
     })
 
-    xdescribe("datasetCollection", () => {
+    describe("datasetCollection", () => {
 
         const testData = testDatasetCollection;
 
@@ -463,7 +460,6 @@ describe("cache/operators.js: rxjs operators", () => {
                 of (testData).pipe(
                     cacheDatasetCollection(),
                     tap(wasCached),
-                    pluck('id'),
                     uncacheDatasetCollection(),
                     tap(wasDeleted),
                     mapTo(testData.id),

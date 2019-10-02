@@ -1,6 +1,7 @@
 import { of } from "rxjs";
+import { filter, pluck, distinctUntilChanged } from "rxjs/operators";
 import { HistoryCache } from "../History";
-import { CurrentUserId } from "store/userStore";
+import { watchVuexSelector } from "utils/observable/vuex";
 
 
 /**
@@ -9,21 +10,34 @@ import { CurrentUserId } from "store/userStore";
  * Vuex when we're done.
  */
 
+let historyCacheSub;
+
 export function $init({ commit }, { store }) {
 
-    // generate CurrentUserId observable by looking at the store
-    const CurrentUserId$ = of(store).pipe(CurrentUserId());
+    // cleanup
+    if (historyCacheSub) {
+        historyCacheSub.unsubscribe();
+    }
 
-    // generate a history cache observable from the user id
-    const HistoryCache$ = CurrentUserId$.pipe(HistoryCache());
+    // get userId from vuex
+    const userId$ = of(store).pipe(
+        watchVuexSelector({
+            selector: state => state.user.currentUser
+        }),
+        filter(Boolean),
+        pluck('id'),
+        distinctUntilChanged()
+    )
+
+    // generate history cache observable from user id
+    const HistoryCache$ = userId$.pipe(
+        HistoryCache()
+    )
 
     // transfers changing results of indexDB contents to the vuex store
     // so we can maintain the fiction that Vuex has a reason to be here
-    HistoryCache$.subscribe({
-        next: list => {
-            console.log("histories?", list.length, list);
-            commit("setHistories", list);
-        },
+    historyCacheSub = HistoryCache$.subscribe({
+        next: list => commit("setHistories", list),
         error: err => console.warn("Histories$, error", err)
     })
 }

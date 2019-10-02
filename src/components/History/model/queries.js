@@ -77,10 +77,8 @@ export async function cloneHistory(history, name, copyAll) {
 export async function deleteHistoryById(id, purge = false) {
     const url = `/api/histories/${id}` + (purge ? "?purge=True" : "");
     const response = await axios.delete(url);
-    if (response.status != 200) {
-        throw new Error(response);
-    }
-    return id;
+    console.log("response", response);
+    return doResponse(response);
 }
 
 

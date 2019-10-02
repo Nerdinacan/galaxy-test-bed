@@ -35,7 +35,7 @@
 <script>
 
 import { mapState } from "vuex";
-import { tap, filter, pluck, distinctUntilChanged } from "rxjs/operators";
+import { tap, filter, pluck, distinctUntilChanged, startWith } from "rxjs/operators";
 import { ContentLoader } from "./model/ContentLoader";
 import { SearchParams } from "./model/SearchParams";
 
@@ -83,17 +83,20 @@ export default {
     },
     subscriptions() {
 
-        const param$ = this.$watchAsObservable('params', { immediate: true }).pipe(
+        const param$ = this.$watchAsObservable('params').pipe(
             pluck('newValue'),
+            startWith(this.params),
             filter(Boolean),
             distinctUntilChanged(SearchParams.equals),
             tap(p => this.loading = true)
         )
 
-        const content = ContentLoader(param$, {
-            suppressPolling: false,
-            suppressManualLoad: false
-        })
+        const content = param$.pipe(
+            ContentLoader({
+                suppressPolling: false,
+                suppressManualLoad: false
+            })
+        )
 
         return { content }
     }

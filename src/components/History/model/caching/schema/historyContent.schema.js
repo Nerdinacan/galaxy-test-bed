@@ -5,14 +5,14 @@ export default {
     version: 0,
     type: "object",
     properties: {
-        
+
         type_id: { type: "string", primary: true },
         id: { type: "string", index: true },
         history_id: { type: "string", index: true },
         hid: { type: "integer", index: true },
 
         history_content_type: { type: "string" },
-        created_time: { type: "string" },
+        create_time: { type: "string" },
         update_time: { type: "string" },
 
         name: { type: "string" },

@@ -19,8 +19,14 @@ export default {
     },
     computed: {
         activeHistories() {
-            const histories = sortBy(this.$store.state.history.histories, "name");
-            return histories.filter(h => !(h.isDeleted || h.purged));
+            const histories = [ ...this.$store.state.history.histories ];
+            const undeleted = histories.filter(h => !(h.isDeleted || h.purged));
+            const sortedHistories = undeleted.sort((a,b) => {
+                const aa = a.name.toLowerCase();
+                const bb = b.name.toLowerCase();
+                return bb - aa;
+            })
+            return sortedHistories;
         }
     }
 }

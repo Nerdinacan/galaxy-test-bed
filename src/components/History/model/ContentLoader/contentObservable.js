@@ -1,6 +1,6 @@
-import { from, pipe } from "rxjs";
-import { switchMap, map, withLatestFrom } from "rxjs/operators";
-import { getCollection } from "../caching/db";
+import { combineLatest } from "rxjs";
+import { switchMap, map } from "rxjs/operators";
+import { getCollection$ } from "../caching/db";
 
 
 
@@ -11,23 +11,13 @@ import { getCollection } from "../caching/db";
  * string through this operator)
  *
  * intended source: Observable<SearchParams>
- *
- * @param {*} label
- * @param {*} debug
  */
-export const contentObservable = config => {
+export const contentObservable = (config = {}) => param$ => {
 
-    const {
-        label = "contentObservable",
-        debug = false
-    } = config;
+    const coll$ = getCollection$('historycontent');
 
-    const coll$ = from(getCollection('historycontent'));
-
-    return pipe(
-        withLatestFrom(coll$),
-        // withLatestFromDb(historyContent$),
-        map(buildLocalContentQuery({ label, debug })),
+    return combineLatest(param$, coll$).pipe(
+        map(buildLocalContentQuery(config)),
         switchMap(query => query.$)
     )
 }
@@ -38,7 +28,9 @@ export const contentObservable = config => {
  * filteres according to passed parameters
  * @param {*} config
  */
-export const buildLocalContentQuery = config => ([ params, coll ]) => {
+export const buildLocalContentQuery = (config = {}) => input$ => {
+
+    const [ params, coll ] = input$;
 
     const {
         label = "buildLocalContentQuery",
