@@ -96,7 +96,9 @@ async function buildHistory(db) {
     const historyPruner = pruneToSchema(historySchema);
 
     const prepareHistory = raw => {
-        raw.isDeleted = raw.deleted;
+        if (undefined !== raw.deleted) {
+            raw.isDeleted = raw.deleted;
+        }
         historyPruner(raw);
     }
 
@@ -123,7 +125,9 @@ async function buildContent(db) {
 
     const prepareContent = raw => {
 
-        raw.isDeleted = raw.deleted;
+        if (undefined !== raw.deleted) {
+            raw.isDeleted = raw.deleted;
+        }
 
         // stupid api does not return purged for collections
         if (raw.purged === undefined) {
@@ -180,7 +184,9 @@ async function buildDatasets(db) {
     const pruner = pruneToSchema(datasetSchema);
 
     const prepareDataset = raw => {
-        raw.isDeleted = raw.deleted;
+        if (undefined !== raw.deleted) {
+            raw.isDeleted = raw.deleted;
+        }
         pruner(raw);
     }
 
@@ -211,7 +217,9 @@ async function buildDsc(db) {
             raw.type_id = `${raw.history_content_type}-${raw.id}`;
         }
 
-        raw.isDeleted = raw.deleted;
+        if (undefined !== raw.deleted) {
+            raw.isDeleted = raw.deleted;
+        }
 
         if (raw.purged === undefined) {
             raw.purged = false;

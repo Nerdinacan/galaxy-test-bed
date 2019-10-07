@@ -3,24 +3,30 @@
  * apply general error handling and retries, etc.
  */
 
-import { BehaviorSubject } from "rxjs";
-import { tap, map, mergeMap } from "rxjs/operators";
+import { Subject, merge } from "rxjs";
+import { tap, map, mergeMap, scan, mapTo, startWith } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
 import { prependPath } from "utils/redirect";
 
 
 // loading indicator
-export const ajaxLoading = new BehaviorSubject(false);
-
+const isLoading = new Subject();
+const loading$ = isLoading.pipe(mapTo(1));
+const notLoading = new Subject;
+const unloading$ = notLoading.pipe(mapTo(-1));
+export const ajaxLoading = merge(loading$, unloading$).pipe(
+    scan((acc, val) => Math.max(acc + val, 0), 0),
+    startWith(0),
+    map(val => val > 0)
+)
 
 export const ajaxGet = () => url$ => {
     return url$.pipe(
-        tap(() => ajaxLoading.next(true)),
+        tap(() => isLoading.next(1)),
         mergeMap(ajax.getJSON),
-        tap(() => ajaxLoading.next(false))
+        tap(() => notLoading.next(1))
     );
 }
-
 
 export const ajaxLoad = () => config$ => {
     return config$.pipe(
@@ -28,8 +34,8 @@ export const ajaxLoad = () => config$ => {
             ...config,
             url: prependPath(config.url)
         })),
-        tap(() => ajaxLoading.next(true)),
+        tap(() => isLoading.next(1)),
         mergeMap(ajax),
-        tap(() => ajaxLoading.next(false))
+        tap(() => notLoading.next(1))
     )
 }

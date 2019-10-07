@@ -1,47 +1,40 @@
-// TODO:
-// check this out, see if we can replace our poll operator with it.
-// https://github.com/jiayihu/rx-polling
-
-
-import { of, pipe } from "rxjs";
-import { map, takeUntil } from "rxjs/operators";
-import { createInputFunction, ajaxGet, firstItem, operateOnArray } from "utils/observable";
+import { pipe } from "rxjs";
+import { map, pluck, take } from "rxjs/operators";
+import { ajaxGet, firstItem, split } from "utils/observable";
 import { getHistory, cacheContent, cacheHistory } from "../caching/operators";
 import moment from "moment";
 
 
-/**
- * Creates a subject and function to stop polling, primarily for debugging purposes.
- */
-export const stopPolling = createInputFunction();
-
 
 /**
  * Generates an observable for a single poll request for a given history id
- * @param {string} id History Id
  */
-export const buildPollRequest = historyId => of(historyId).pipe(
-    getHistory({ debug: true, live: false }),
-    refreshHistory(),
-    loadContentForHistory(),
-    takeUntil(stopPolling.$)
-)
+export const buildPollRequest = () => {
 
+    return pipe(
 
-// Get and cache a newer version of the history object if one exists
+        // This observable needs to complete. Only do one request
+        take(1),
 
-// Requests a history with same id but newer update time. Triggers on
-// server should update the history so this will show up with no results
-// unless something's been updated.
+        // find the history from the params source
+        pluck('historyId'),
+        getHistory(),
 
-const refreshHistory = debug => pipe(
-    map(buildHistoryUrl),
-    ajaxGet(),
-    firstItem(),
-    cacheHistory({ debug })
-)
+        // refresh history
+        map(buildHistoryUrl),
+        ajaxGet(),
+        firstItem(),
+        cacheHistory(),
 
-const buildHistoryUrl = history => {
+        // retrieve new content for that history
+        map(buildContentUrlForHistory),
+        ajaxGet(),
+        split(),
+        cacheContent(),
+    )
+}
+
+export const buildHistoryUrl = history => {
     const base = "/api/histories?context=historypoll&view=detailed&keys=size,non_ready_jobs,contents_active,hid_counter";
     const idCriteria = `q=encoded_id-in&qv=${history.id}`;
     const updateCriteria = `q=update_time-gt&qv=${history.update_time}`;
@@ -50,29 +43,10 @@ const buildHistoryUrl = history => {
     return url;
 }
 
-
-
-// Requests content if history got a hit. We can't limit by history update_time
-// because the dataset collection data does not have an update time
-// TODO: add an update time to hdac table
-
-const loadContentForHistory = () => pipe(
-    map(buildContentUrlForHistory),
-    ajaxGet(),
-    cacheContentArray(),
-)
-
-const buildContentUrlForHistory = history => {
+export const buildContentUrlForHistory = history => {
     const base = `/api/histories/${history.id}/contents?v=dev&view=summary&keys=accessible&context=contentpoll`;
     const since = moment.utc(history.update_time);
     const updateClause = `q=update_time-gt&qv=${since.toISOString()}`
     const parts = [ base, updateClause ];
     return parts.filter(o => o.length).join("&");
 }
-
-
-// Forkjoins an array of cache promises, emits an array of cached objects
-
-const cacheContentArray = debug => pipe(
-    operateOnArray(cacheContent({ debug })),
-)

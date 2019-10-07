@@ -12,12 +12,12 @@ import { getCollection$ } from "../caching/db";
  *
  * intended source: Observable<SearchParams>
  */
-export const contentObservable = (config = {}) => param$ => {
+export const contentObservable = () => param$ => {
 
     const coll$ = getCollection$('historycontent');
 
     return combineLatest(param$, coll$).pipe(
-        map(buildLocalContentQuery(config)),
+        map(buildLocalContentQuery),
         switchMap(query => query.$)
     )
 }
@@ -28,14 +28,13 @@ export const contentObservable = (config = {}) => param$ => {
  * filteres according to passed parameters
  * @param {*} config
  */
-export const buildLocalContentQuery = (config = {}) => input$ => {
+export const buildLocalContentQuery = input$ => {
 
     const [ params, coll ] = input$;
 
-    const {
-        label = "buildLocalContentQuery",
-        debug = false
-    } = config;
+    if (!params.historyId) {
+        throw new Error("Missing historyId");
+    }
 
     const selector = {
         history_id: { $eq: params.historyId }
@@ -60,14 +59,6 @@ export const buildLocalContentQuery = (config = {}) => input$ => {
         .sort("-hid")
         .skip(params.skip)
         .limit(params.limit);
-
-    if (debug) {
-        console.groupCollapsed(label);
-        params.report(label);
-        console.log("query", query.mquery);
-        console.log(query.stringRep);
-        console.groupEnd();
-    }
 
     return query;
 }

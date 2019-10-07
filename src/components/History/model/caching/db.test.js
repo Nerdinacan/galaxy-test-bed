@@ -1,12 +1,13 @@
 import { expect } from "chai";
+import assert from "assert";
 import { isRxDatabase, isRxCollection, isRxDocument } from "rxdb";
 
 import { getDb, wipeDatabase, getCollection } from "./db";
 import { cacheHistory, getHistory } from "./index";
-import testHistory from "./testdata/history.json";
+import testHistory from "../testdata/history.json";
 
 
-describe("cache/db.js: RxDB instance assembly & disassembly", () => {
+describe("caching/db.js: RxDB instance assembly & disassembly", () => {
 
     afterEach(async () => await wipeDatabase());
 
@@ -14,15 +15,15 @@ describe("cache/db.js: RxDB instance assembly & disassembly", () => {
 
         it("can be built with a promise", async () => {
             const db = await getDb();
-            expect(isRxDatabase(db)).to.be.true;
+            assert(isRxDatabase(db));
         })
 
         it("can be rebuilt after a db wipe", async () => {
             const db = await getDb();
-            expect(isRxDatabase(db)).to.be.true;
+            assert(isRxDatabase(db));
             await wipeDatabase();
             const db2 = await getDb();
-            expect(isRxDatabase(db2)).to.be.true;
+            assert(isRxDatabase(db2));
         })
     })
 
@@ -30,15 +31,15 @@ describe("cache/db.js: RxDB instance assembly & disassembly", () => {
 
         it("can retrieve an rxdb collection", async () => {
             const coll = await getCollection("history");
-            expect(isRxCollection(coll)).to.be.true;
+            assert(isRxCollection(coll));
         })
 
         it("can retrieve an rxdb collection after rebuild", async () => {
             const coll = await getCollection("history");
-            expect(isRxCollection(coll)).to.be.true;
+            assert(isRxCollection(coll));
             await wipeDatabase();
             const coll2 = await getCollection("history");
-            expect(isRxCollection(coll2)).to.be.true;
+            assert(isRxCollection(coll2));
         })
     })
 
@@ -46,9 +47,9 @@ describe("cache/db.js: RxDB instance assembly & disassembly", () => {
 
         it("should not see an inserted doc after a wipe", async () => {
             const doc = await cacheHistory(testHistory);
-            expect(isRxDocument(doc)).to.be.true;
+            assert(isRxDocument(doc));
             const doc2 = await getHistory(testHistory.id);
-            expect(isRxDocument(doc2)).to.be.true;
+            assert(isRxDocument(doc2));
             await wipeDatabase();
             const doc3 = await getHistory(testHistory.id);
             expect(doc3).to.be.null;

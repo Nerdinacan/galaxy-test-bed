@@ -1,4 +1,5 @@
 import sinon from "sinon";
+import assert from "assert";
 import { expect } from "chai";
 import { of } from "rxjs";
 import { tap, mapTo, pluck, take } from "rxjs/operators";
@@ -12,13 +13,13 @@ import {
     cacheDatasetCollection, getDatasetCollection, uncacheDatasetCollection
 } from "./operators";
 
-import testHistory from "./testdata/history.json";
-import testContent from "./testdata/content.json";
-import testDataset from "./testdata/dataset.json";
-import testDatasetCollection from "./testdata/datasetCollection.json";
+import testHistory from "../testdata/history.json";
+import testContent from "../testdata/content.json";
+import testDataset from "../testdata/dataset.json";
+import testDatasetCollection from "../testdata/datasetCollection.json";
 
 
-describe("cache/operators.js: rxjs operators", () => {
+describe("caching/operators: rxjs operators", () => {
 
     afterEach(async () => await wipeDatabase());
 
@@ -38,10 +39,10 @@ describe("cache/operators.js: rxjs operators", () => {
                 ).subscribe({
                     next: handler,
                     complete:() => {
-                        expect(handler.called).to.be.true;
+                        assert(handler.called);
                         expect(handler.getCalls().length).to.equal(1);
                         const doc = handler.firstCall.args[0];
-                        expect(isRxDocument(doc)).to.be.true;
+                        assert(isRxDocument(doc));
                         expect(doc.id).to.equal(testData.id);
                         done();
                     }
@@ -68,17 +69,17 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
-                        expect(isRxDocument(retrievedDoc)).to.be.true;
+                        assert(isRxDocument(retrievedDoc));
                         expect(retrievedDoc.id).to.equal(testData.id);
 
                         done();
@@ -114,21 +115,21 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasDeleted.called).to.be.true;
+                        assert(wasDeleted.called);
                         expect(wasDeleted.getCalls().length).to.equal(1);
                         const deletedDoc = wasDeleted.firstCall.args[0];
-                        expect(isRxDocument(deletedDoc)).to.be.true;
-                        expect(deletedDoc.deleted).to.be.true;
+                        assert(isRxDocument(deletedDoc));
+                        assert(deletedDoc.deleted);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
                         expect(retrievedDoc).to.be.null;
@@ -158,10 +159,10 @@ describe("cache/operators.js: rxjs operators", () => {
                 ).subscribe({
                     next: handler,
                     complete:() => {
-                        expect(handler.called).to.be.true;
+                        assert(handler.called);
                         expect(handler.getCalls().length).to.equal(1);
                         const doc = handler.firstCall.args[0];
-                        expect(isRxDocument(doc)).to.be.true;
+                        assert(isRxDocument(doc));
                         expect(doc.type_id).to.equal(testData.type_id);
                         done();
                     }
@@ -187,17 +188,17 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.type_id).to.equal(testData.type_id);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
-                        expect(isRxDocument(retrievedDoc)).to.be.true;
+                        assert(isRxDocument(retrievedDoc));
                         expect(retrievedDoc.type_id).to.equal(testData.type_id);
 
                         done();
@@ -232,21 +233,21 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasDeleted.called).to.be.true;
+                        assert(wasDeleted.called);
                         expect(wasDeleted.getCalls().length).to.equal(1);
                         const deletedDoc = wasDeleted.firstCall.args[0];
-                        expect(isRxDocument(deletedDoc)).to.be.true;
-                        expect(deletedDoc.deleted).to.be.true;
+                        assert(isRxDocument(deletedDoc));
+                        assert(deletedDoc.deleted);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
                         expect(retrievedDoc).to.be.null;
@@ -274,10 +275,10 @@ describe("cache/operators.js: rxjs operators", () => {
                 ).subscribe({
                     next: handler,
                     complete:() => {
-                        expect(handler.called).to.be.true;
+                        assert(handler.called);
                         expect(handler.getCalls().length).to.equal(1);
                         const doc = handler.firstCall.args[0];
-                        expect(isRxDocument(doc)).to.be.true;
+                        assert(isRxDocument(doc));
                         expect(doc.id).to.equal(testData.id);
                         done();
                     }
@@ -303,17 +304,17 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
-                        expect(isRxDocument(retrievedDoc)).to.be.true;
+                        assert(isRxDocument(retrievedDoc));
                         expect(retrievedDoc.id).to.equal(testData.id);
 
                         done();
@@ -349,21 +350,21 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasDeleted.called).to.be.true;
+                        assert(wasDeleted.called);
                         expect(wasDeleted.getCalls().length).to.equal(1);
                         const deletedDoc = wasDeleted.firstCall.args[0];
-                        expect(isRxDocument(deletedDoc)).to.be.true;
-                        expect(deletedDoc.deleted).to.be.true;
+                        assert(isRxDocument(deletedDoc));
+                        assert(deletedDoc.deleted);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
                         expect(retrievedDoc).to.be.null;
@@ -393,10 +394,10 @@ describe("cache/operators.js: rxjs operators", () => {
                 ).subscribe({
                     next: handler,
                     complete:() => {
-                        expect(handler.called).to.be.true;
+                        assert(handler.called);
                         expect(handler.getCalls().length).to.equal(1);
                         const doc = handler.firstCall.args[0];
-                        expect(isRxDocument(doc)).to.be.true;
+                        assert(isRxDocument(doc));
                         expect(doc.id).to.equal(testData.id);
                         done();
                     }
@@ -423,17 +424,17 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
-                        expect(isRxDocument(retrievedDoc)).to.be.true;
+                        assert(isRxDocument(retrievedDoc));
                         expect(retrievedDoc.id).to.equal(testData.id);
 
                         done();
@@ -469,21 +470,21 @@ describe("cache/operators.js: rxjs operators", () => {
                     complete: () => {
 
                         // check what was saved
-                        expect(wasCached.called).to.be.true;
+                        assert(wasCached.called);
                         expect(wasCached.getCalls().length).to.equal(1);
                         const savedDoc = wasCached.firstCall.args[0];
-                        expect(isRxDocument(savedDoc)).to.be.true;
+                        assert(isRxDocument(savedDoc));
                         expect(savedDoc.id).to.equal(testData.id);
 
                         // check what we pulled back
-                        expect(wasDeleted.called).to.be.true;
+                        assert(wasDeleted.called);
                         expect(wasDeleted.getCalls().length).to.equal(1);
                         const deletedDoc = wasDeleted.firstCall.args[0];
-                        expect(isRxDocument(deletedDoc)).to.be.true;
-                        expect(deletedDoc.deleted).to.be.true;
+                        assert(isRxDocument(deletedDoc));
+                        assert(deletedDoc.deleted);
 
                         // check what we pulled back
-                        expect(wasRetrieved.called).to.be.true;
+                        assert(wasRetrieved.called);
                         expect(wasRetrieved.getCalls().length).to.equal(1);
                         const retrievedDoc = wasRetrieved.firstCall.args[0];
                         expect(retrievedDoc).to.be.null;

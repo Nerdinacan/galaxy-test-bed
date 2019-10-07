@@ -1,13 +1,20 @@
 import { Observable } from "rxjs";
-import { pluck, share } from "rxjs/operators";
-import { poll } from "utils/observable";
-import { cacheContent } from "../caching/operators";
+import { tap, share, takeUntil } from "rxjs/operators";
+import { split } from "utils/observable/split";
+import polling from 'rx-polling';
 
+import { createInputFunction } from "utils/observable";
+import { cacheContent } from "../caching/operators";
 import { contentObservable } from "./contentObservable";
-import { loadManualRequests } from "./loadManualRequests";
+import { loadManualRequest } from "./loadManualRequest";
 import { buildPollRequest } from "./buildPollRequest";
 
-export { stopPolling } from "./buildPollRequest";
+
+
+/**
+ * Creates a subject and function to stop polling, primarily for debugging purposes.
+ */
+export const stopPolling = createInputFunction();
 
 
 /**
@@ -31,18 +38,12 @@ export { stopPolling } from "./buildPollRequest";
  * operations in galaxy since the history object itself is cached as well as new
  * or updated contents.
  */
-
-/**
- * Sets up subscription to 3 key observables for the history component.
- * @param {Observable} p$ Incoming parameter stream
- */
-
 export const ContentLoader = (config = {}) => incomingParam$ => {
 
     const {
         suppressPolling = false,
         suppressManualLoad = false,
-        debug = false
+        pollInterval = 5000
     } = config;
 
     // share this
@@ -53,22 +54,29 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
     // observable that renders content in the list, just
     // stares directly at the db for this history
     const content$ = param$.pipe(
-        contentObservable({ debug })
+        contentObservable()
     )
 
     // ajax requests instantiated by filtering/pagination changes
     // combineLatest(param$, content$)
     const manual$ = param$.pipe(
-        loadManualRequests(),
-        cacheContent()
+        loadManualRequest()
     )
 
     // periodic updates, updates to this history independent of what the
     // user is looking at, just depends on the history
-    const polling$ = param$.pipe(
-        pluck('historyId'),
-        poll({ buildPollRequest })
+    const pollRequest$ = param$.pipe(
+        tap(() => console.log("polling!")),
+        buildPollRequest(),
+        tap(() => console.log("poll done!"))
     )
+
+    const poll$ = polling(pollRequest$, {
+        interval: pollInterval
+    }).pipe(
+        takeUntil(stopPolling.$)
+    )
+
 
     return new Observable(observer => {
 
@@ -91,8 +99,8 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
 
         // catches non-ui updates to history. Server side changes, etc.
         if (!suppressPolling) {
-            const pollSub = polling$.subscribe({
-                // complete: () => console.log("polling complete"),
+            const pollSub = poll$.subscribe({
+                complete: () => console.log("polling complete"),
                 error: err => {
                     if (err.rxdb) rxdbErrorHandler(err);
                 }
@@ -100,11 +108,7 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
             sub.add(pollSub);
         }
 
-        return function() {
-            if (sub) {
-                sub.unsubscribe();
-            }
-        }
+        return sub;
     })
 
 }
@@ -133,5 +137,4 @@ function rxdbErrorHandler(err) {
         const diff2 = schemaKeys.filter(x => !objectKeys.includes(x));
         console.log("keys in schema, not in object", diff2);
     }
-
 }

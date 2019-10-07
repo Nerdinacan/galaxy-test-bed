@@ -2,19 +2,19 @@ import assert from "assert";
 import { Validator } from "jsonschema";
 
 import historySchema from "./history.schema";
-import historyTestData from "../testdata/history.json";
+import historyTestData from "../../testdata/history.json";
 
 import contentSchema from "./historyContent.schema";
-import contentTestData from "../testdata/content.json";
+import contentTestData from "../../testdata/content.json";
 
 import datasetSchema from "./dataset.schema";
 import datasetCollectionSchema from "./datasetCollection.schema";
 
-import datasetTestData from "../testdata/dataset.json";
-import datasetCollectionTestData from "../testdata/broke.json";
+import datasetTestData from "../../testdata/dataset.json";
+import datasetCollectionTestData from "../../testdata/broke.json";
 
 
-describe("schema", () => {
+describe("caching/schema", () => {
 
 
     describe("history", () => {

@@ -1,18 +1,31 @@
 /**
  * Caching. RxDB's api is mostly promises, which makes no sense.
+ * See operators.js for a list of these promises turned into operators
  */
 
 import { isRxDocument } from "rxdb";
 import { getCollection } from "./db";
 
-
 async function save(collName, raw = {}) {
-    let props = isRxDocument(raw) ? raw.toJSON() : raw;
-    const collection = await getCollection(collName);
-    const saveResult = await collection.upsert(props);
-    if (!isRxDocument(saveResult)) {
-        throw new Error("save result was not an rxdoc");
+
+    let saveResult;
+
+    if (isRxDocument(raw)) {
+        const doc = await newDoc(collName, raw.toJSON());
+        const saved = await doc.save();
+        if (!saved) {
+            throw new Error("doc not saved");
+        }
+        saveResult = doc;
+    } else {
+        const collection = await getCollection(collName);
+        saveResult = await collection.upsert(raw);
     }
+
+    if (!isRxDocument(saveResult)) {
+        throw new Error("cache result was not an rxdoc", saveResult);
+    }
+
     return saveResult;
 }
 
@@ -27,21 +40,30 @@ async function getByPk(collName, key) {
 }
 
 async function uncacheItem(collName, item) {
-    const collection = await getCollection(collName);
-    const keyfield = collection.schema.primaryPath;
-    const key = item[keyfield];
-    const doc = await getByPk(collName, key);
-    if (!isRxDocument(doc)) {
-        throw new Error(`Document cannot be deleted from ${collName} because ${key} doesn't exist.`, key);
+    try {
+        const collection = await getCollection(collName);
+        const keyfield = collection.schema.primaryPath;
+        const key = item[keyfield];
+        const doc = await getByPk(collName, key);
+        if (!isRxDocument(doc)) {
+            throw new Error("lookup item not a doc");
+        }
+        const result = await doc.remove();
+        if (!isRxDocument(result)) {
+            throw new Error("removed item not a doc");
+        }
+        return result;
+    } catch(err) {
+        // console.log("Error uncaching");
+        throw err;
     }
-    return await doc.remove();
 }
 
 async function newDoc(collName, props = {}) {
     const collection = await getCollection(collName);
     const newDoc = collection.newDocument(props);
     if (!isRxDocument(newDoc)) {
-        throw Error("newDocument returned nonsense");
+        throw new Error("newDoc returned nonsense");
     }
     return newDoc;
 }

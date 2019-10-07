@@ -1,7 +1,7 @@
-import { of, Subject, merge, from, pipe } from "rxjs";
-import { tap, filter, mergeMap, share, map, withLatestFrom } from "rxjs/operators";
-import { ajaxGet } from "utils/observable";
-// import { tag } from "rxjs-spy/operators";
+import { of, Subject, merge } from "rxjs";
+import { tap, mergeMap, share, map, withLatestFrom } from "rxjs/operators";
+import { ajaxGet, firstItem, split } from "utils/observable";
+import { cacheContent } from "../caching/operators";
 import { SearchParams } from "../SearchParams";
 
 
@@ -12,7 +12,7 @@ import { SearchParams } from "../SearchParams";
  * the src$ should be a combination of the current params and the
  * rendered content on the UI, i.e. combineLatest(param$, content$)
  */
-export const loadManualRequests = () => initialParam$ => {
+export const loadManualRequest = () => initialParam$ => {
 
     // input stream for secondary requests for large param ranges. We'll break
     // down large requests into smaller chunked segments that we can
@@ -43,8 +43,9 @@ export const loadManualRequests = () => initialParam$ => {
         }),
 
         // split results into a stream of individual updates
-        map(inputs => inputs[0]),
-        mergeMap(results => from(results))
+        firstItem(),
+        split(),
+        cacheContent()
     )
 }
 

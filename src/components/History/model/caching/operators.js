@@ -18,7 +18,9 @@ const toOperator = fnName => {
     if (!(fn instanceof Function)) {
         throw new Error(`indicated import is not a function`);
     }
-    return () => pipe(mergeMap(fn))
+    return () => pipe(
+        mergeMap(src => fn(src))
+    )
 }
 
 export const cacheHistory = toOperator("cacheHistory");

@@ -15,11 +15,11 @@ import {
     getSelectedCollection
 } from "./getters";
 
-import testHistories from "./testdata/histories";
+import testHistories from "../testdata/histories";
 
 
 
-describe("historyStore", () => {
+describe("model/historyStore", () => {
 
     let state;
     beforeEach(() => {
@@ -210,17 +210,6 @@ describe("historyStore", () => {
                 expect(newCollId).to.equal(fakeId);
             })
 
-        })
-
-    })
-
-
-    xdescribe("actions", () => {
-
-        describe("$init", () => {
-            it("should start listening to the History$ observable when store is initialized", () => {
-
-            })
         })
 
     })
