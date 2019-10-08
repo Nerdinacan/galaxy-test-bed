@@ -16,7 +16,7 @@ const toOperator = fnName => {
         throw new Error(`undefined promise function: ${fnName}`);
     }
     if (!(fn instanceof Function)) {
-        throw new Error(`indicated import is not a function`);
+        throw new Error(`indicated import ${fnName} is not a function`);
     }
     return () => pipe(
         mergeMap(src => fn(src))

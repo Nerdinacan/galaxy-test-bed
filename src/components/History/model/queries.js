@@ -4,6 +4,7 @@ import { safeAssign } from "utils/safeAssign";
 
 // #region History Queries
 
+
 // history params
 const stdHistoryParams = "view=dev-detailed";
 
@@ -108,8 +109,6 @@ export async function secureHistory(history_id) {
 
 // #endregion
 
-
-
 // #region Content Queries
 
 /**
@@ -151,8 +150,8 @@ export async function loadContentFields(content, fields = []) {
 /**
  * Generic content query function originally intended to help with bulk updates
  * so we don't have to go through the barbaric legacy /history endpoints and
- * can stay in the /api as much as possible. A more general query mechanism
- * can be found in the ContentLoader
+ * can stay in the /api as much as possible.
+ *
  * @param {*} history
  * @param {*} filterParams
  */
@@ -166,10 +165,24 @@ async function getAllContentByFilter(history, filterParams = {}, keys = ["id","h
 }
 
 
+/**
+ * Given a content object, retrieve the detailed dataset or collection
+ * object by looking at the url prop of the content
+ * @param {*} content
+ */
+export async function getContentDetails(content) {
+    const url = content.url;
+    const response = await axios.get(url);
+    return doResponse(response);
+}
+
+
+
 // delete/purge content, means setting a flag to false
 
 /**
  * Deletes item from history
+ *
  * @param {Object} c Content object
  * @param {Boolean} purge Permanent delete
  * @param {Boolean} recursive Scorch the earth?
@@ -247,7 +260,6 @@ export async function bulkContentUpdate({ id }, items = [], fields = {}) {
 
 // #endregion
 
-
 // #region Collections
 
 // TODO: Yet another api endpoint that needs fixing
@@ -269,8 +281,6 @@ export async function createDatasetCollection(history, inputs = {}) {
 }
 
 // #endregion
-
-
 
 // #region Job Queries
 
@@ -307,11 +317,8 @@ export async function loadToolById(toolId) {
 // #endregion
 
 
-
-
-
 /**
- * Some of the current endpoints myseriously don't accept JSON, so we need to
+ * Some of the current endpoints mysteriously don't accept JSON, so we need to
  * dosome massaging to send in old form post data. (See if axios can just do
  * this for us.)
  * @param {Object} fields
@@ -341,8 +348,7 @@ function buildIncompetentQueryFromParams(fields = {}) {
 
 /**
  * Oh yeah! And to add even more stupid, the API doesn't take standard true/false
- * it takes a string representation of a python Boolean meaning it must be capitalized.
- * Again, because the API author(s) likely have never built a single web application.
+ * it takes a string representation of a python Boolean meaning
  */
 function ruinBooleans(val) {
     if (val === true) return "True";

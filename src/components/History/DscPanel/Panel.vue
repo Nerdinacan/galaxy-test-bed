@@ -85,8 +85,8 @@
 
 import { mapState, mapMutations } from "vuex";
 import { tap, map, pluck, filter, startWith } from "rxjs/operators";
-import { updateDataset } from "../model/Dataset$";
-import { DatasetCollection$ } from "../model/DatasetCollection$";
+import { updateDataset } from "../model/Dataset";
+import { DatasetCollectionCache } from "../model/Dataset";
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import Scroller from "components/Scroller";
@@ -130,10 +130,12 @@ export default {
             filter(Boolean)
         )
 
+        const dsc$ = typeId$.pipe(
+            DatasetCollectionCache()
+        )
+
         return {
-            dsc: DatasetCollection$(typeId$).pipe(
-                startWith(null)
-            )
+            dsc: dsc$
         }
     },
 

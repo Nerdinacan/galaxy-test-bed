@@ -5,7 +5,7 @@
  */
 
 import { pluck, startWith } from "rxjs/operators";
-import { Dataset$ } from "../model/Dataset$";
+import { DatasetCache } from "../model/Dataset";
 
 export default {
     props: {
@@ -27,23 +27,17 @@ export default {
         load() {
             if (!this.datasetSub) {
 
-                const content$ = this.$watchAsObservable('content').pipe(
+                const ds$ = this.$watchAsObservable('content').pipe(
                     pluck('newValue'),
-                    startWith(this.content)
-                );
-
-                this.datasetSub = this.$subscribeTo(
-                    Dataset$(content$),
-                    ds => {
-                        this.dataset = ds;
-                    },
-                    err => {
-                        console.warn("datasetSub err", err);
-                    },
-                    () => {
-                        this.dataset = null;
-                    }
+                    startWith(this.content),
+                    DatasetCache()
                 )
+
+                this.datasetSub = ds$.subscribe({
+                    next: ds => this.dataset = ds,
+                    error: err => console.warn("datasetSub err", err),
+                    complete: () => console.log("complete should not fire")
+                })
             }
         },
 

@@ -6,7 +6,7 @@
 
 import dasherize from "underscore.string/dasherize";
 import { safeAssign } from "utils/safeAssign";
-import { dateMethods, collectionCosmetics } from "./caching/db";
+import { dateMethods, collectionCosmetics } from "../caching/db";
 import moment from "moment";
 
 const rawStupidData = new WeakMap();

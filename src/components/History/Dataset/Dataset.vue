@@ -54,7 +54,7 @@
 <script>
 
 import { eventHub } from "components/eventHub";
-import { updateDataset } from "../model/Dataset$";
+import { updateDataset } from "../model/Dataset";
 import datasetMixin from "./datasetMixin";
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";

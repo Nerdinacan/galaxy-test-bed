@@ -18,7 +18,7 @@
 
 <script>
 
-import DscWrapper from "../model/DscWrapper";
+import DscWrapper from "../model/Dataset";
 
 export default {
     props: {

@@ -1,6 +1,6 @@
 import { TagService } from "components/Tags/tagService";
 import { createTag } from "components/Tags/model";
-import { updateDataset } from "components/History/model/Dataset$";
+import { updateDataset } from "components/History/model/Dataset";
 
 
 // TODO: refactor Tags (again). Not liking this service injection

@@ -3,7 +3,6 @@ import { tap, filter, map, pluck, take } from "rxjs/operators";
 import { ajaxGet, firstItem, split } from "utils/observable";
 import { getHistory, cacheContent, cacheHistory } from "../caching/operators";
 import { SearchParams } from "../SearchParams";
-import moment from "moment";
 
 
 /**
@@ -54,14 +53,12 @@ export const buildHistoryUrl = history => {
     const idCriteria = `q=encoded_id-in&qv=${history.id}`;
     const updateCriteria = `q=update_time-gt&qv=${history.update_time}`;
     const parts = [ base, idCriteria, updateCriteria ];
-    const url = parts.filter(o => o.length).join("&");
-    return url;
+    return parts.filter(o => o.length).join("&");
 }
 
 export const buildContentsUrl = history => {
     const base = `/api/histories/${history.id}/contents?v=dev&view=summary&keys=accessible&context=contentpoll`;
-    const since = moment.utc(history.update_time);
-    const updateCriteria = `q=update_time-gt&qv=${since.toISOString()}`;
+    const updateCriteria = `q=update_time-gt&qv=${history.update_time}`;
     const parts = [ base, updateCriteria ];
     return parts.filter(o => o.length).join("&");
 }
