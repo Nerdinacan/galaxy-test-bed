@@ -1,10 +1,8 @@
-import { Observable } from "rxjs";
-import { tap, share, takeUntil } from "rxjs/operators";
-import { split } from "utils/observable/split";
+import { defer, of, from, Observable } from "rxjs";
+import { tap, share, shareReplay, takeUntil, take } from "rxjs/operators";
 import polling from 'rx-polling';
 
 import { createInputFunction } from "utils/observable";
-import { cacheContent } from "../caching/operators";
 import { contentObservable } from "./contentObservable";
 import { loadManualRequest } from "./loadManualRequest";
 import { buildPollRequest } from "./buildPollRequest";
@@ -43,12 +41,12 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
     const {
         suppressPolling = false,
         suppressManualLoad = false,
-        pollInterval = 5000
+        pollInterval = 10000
     } = config;
 
     // share this
     const param$ = incomingParam$.pipe(
-        share()
+        shareReplay(1)
     )
 
     // observable that renders content in the list, just
@@ -65,12 +63,7 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
 
     // periodic updates, updates to this history independent of what the
     // user is looking at, just depends on the history
-    const pollRequest$ = param$.pipe(
-        tap(() => console.log("polling!")),
-        buildPollRequest(),
-        tap(() => console.log("poll done!"))
-    )
-
+    const pollRequest$ = defer(() => param$.pipe(buildPollRequest()));
     const poll$ = polling(pollRequest$, {
         interval: pollInterval
     }).pipe(
@@ -99,7 +92,9 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
 
         // catches non-ui updates to history. Server side changes, etc.
         if (!suppressPolling) {
+            console.log("subscribing to poll", poll$);
             const pollSub = poll$.subscribe({
+                next: val => console.log("poll result", val),
                 complete: () => console.log("polling complete"),
                 error: err => {
                     if (err.rxdb) rxdbErrorHandler(err);

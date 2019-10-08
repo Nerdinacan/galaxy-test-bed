@@ -93,6 +93,7 @@ export default {
 
         const content = param$.pipe(
             ContentLoader({
+                pollInterval: 5000,
                 suppressPolling: false,
                 suppressManualLoad: false
             })

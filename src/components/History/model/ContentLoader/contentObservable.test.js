@@ -184,4 +184,9 @@ describe("ContentLoader/contentObservable", () => {
         })
     })
 
+    // TODO: test filters
+    // set deleted=true, count results
+    // set hidden=true count results
+    // test filter
+
 })

@@ -180,12 +180,12 @@ describe("HistoryCache.js", () => {
                 tap(idWatcher),
                 HistoryCache(),
                 tap(historyHandler),
-                takeUntil(finished),
                 tap(() => {
                     if (!addToCache.called) {
                         addToCache();
                     }
-                })
+                }),
+                takeUntil(finished)
             ).subscribe({
                 complete: () => {
 

@@ -1,5 +1,6 @@
 /* global expect */
 import sinon from "sinon";
+import assert from "assert";
 import { TagService, __RewireAPI__ as rewire } from "./tagService";
 import { createTag } from "./model";
 import { interval } from "rxjs";
@@ -120,7 +121,9 @@ describe("Tags/tagService.js", () => {
             // searchString is the expected input
             stub = sinon.stub(mockAxios, "get").resolves(successResponse);
 
-            svc.autocompleteOptions.pipe(takeUntil(timer)).subscribe(
+            svc.autocompleteOptions.pipe(
+                takeUntil(timer)
+            ).subscribe(
                 result => (searchResult = result),
                 err => console.log("error", err),
                 () => {
