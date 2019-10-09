@@ -4,14 +4,10 @@
 
 <script>
 
-import { redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
+import legacyNavigation from "components/mixins/legacyNavigation";
 
 export default {
-    methods: {
-        go: redirectToSiteUrl,
-        iframeGo: iframeRedirect,
-        backboneGo: backboneRedirect
-    }
+    mixins: [ legacyNavigation ]
 }
 
 </script>

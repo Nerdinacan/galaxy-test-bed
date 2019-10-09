@@ -5,10 +5,8 @@ import { safeAssign } from "utils/safeAssign";
 // #region History Queries
 
 
-// history params
 const stdHistoryParams = "view=dev-detailed";
 
-// evaluate standard ajax response
 const doResponse = response => {
     if (response.status != 200)
         throw new Error(response);

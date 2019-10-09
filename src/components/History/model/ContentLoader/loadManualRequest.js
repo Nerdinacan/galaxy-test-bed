@@ -1,5 +1,6 @@
 import { of, Subject, merge } from "rxjs";
-import { tap, mergeMap, share, map, withLatestFrom } from "rxjs/operators";
+import { tap, mergeMap, share, map,
+    withLatestFrom } from "rxjs/operators";
 import { ajaxGet, firstItem, split } from "utils/observable";
 import { cacheContent } from "../caching/operators";
 import { SearchParams } from "../SearchParams";

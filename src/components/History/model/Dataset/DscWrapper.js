@@ -11,7 +11,7 @@ import moment from "moment";
 
 const rawStupidData = new WeakMap();
 
-export default class DscWrapper {
+export class DscWrapper {
 
     constructor(raw) {
         rawStupidData.set(this, raw);

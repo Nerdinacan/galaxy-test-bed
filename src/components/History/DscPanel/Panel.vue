@@ -87,6 +87,7 @@ import { mapState, mapMutations } from "vuex";
 import { tap, map, pluck, filter, startWith } from "rxjs/operators";
 import { updateDataset } from "../model/Dataset";
 import { DatasetCollectionCache } from "../model/Dataset";
+import { getContent } from "../model/caching/operators";
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import Scroller from "components/Scroller";
@@ -131,6 +132,7 @@ export default {
         )
 
         const dsc$ = typeId$.pipe(
+            getContent(),
             DatasetCollectionCache()
         )
 

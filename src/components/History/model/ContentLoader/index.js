@@ -92,7 +92,6 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
 
         // catches non-ui updates to history. Server side changes, etc.
         if (!suppressPolling) {
-            console.log("subscribing to poll", poll$);
             const pollSub = poll$.subscribe({
                 next: val => console.log("poll result", val),
                 complete: () => console.log("polling complete"),

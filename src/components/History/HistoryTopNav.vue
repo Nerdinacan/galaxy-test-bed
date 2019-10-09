@@ -21,7 +21,7 @@
         </icon-menu>
 
         <b-popover ref="endlessMenu" target="endlessMenuGear" placement="bottomleft" triggers="click blur">
-            <gear-menu #default="{ go, backboneGo, iframeGo }">
+            <gear-menu>
                 <div @clicked="$refs.endlessMenu.$emit('close')">
                     <a class="dropdown-item" href="#" @click="backboneGo('/histories/list')">
                         {{ 'Saved Histories' | localize }}
@@ -43,13 +43,15 @@
 <script>
 
 import { mapGetters, mapMutations } from "vuex";
+import { createNewHistory } from "./model/History";
+
 import HistorySelector from "./HistorySelector";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-
-import { createNewHistory } from "./model/History";
+import legacyNavigation from "components/mixins/legacyNavigation";
 
 export default {
+    mixins: [ legacyNavigation ],
     components: {
         HistorySelector,
         IconMenu,

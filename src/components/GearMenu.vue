@@ -1,27 +1,21 @@
 <template>
     <div class="gear-menu" ref="menu" @click="$emit('clicked', $event)">
-        <slot :go="go" :iframeGo="iframeGo"
-            :backboneGo="backboneGo"
-            :eventHub="eventHub"></slot>
+        <slot :eventHub="eventHub"></slot>
     </div>
 </template>
 
 
 <script>
 
-import { redirectToSiteUrl, backboneRedirect, iframeRedirect } from "utils/redirect";
+import legacyNavigation from "components/mixins/legacyNavigation";
 import { eventHub } from "./eventHub";
 
 export default {
+    mixins: [ legacyNavigation ],
     data() {
         return {
             eventHub
-        };
-    },
-    methods: {
-        go: redirectToSiteUrl,
-        iframeGo: iframeRedirect,
-        backboneGo: backboneRedirect
+        }
     }
 }
 

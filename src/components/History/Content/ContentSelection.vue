@@ -80,7 +80,7 @@
 
         <b-popover ref="datasetMenu" target="datasetMenuGear"
             placement="bottomleft" triggers="click blur">
-            <gear-menu #default="{ go, backboneGo, iframeGo, eventHub }" @clicked="closeMenu('datasetMenu')">
+            <gear-menu #default @clicked="closeMenu('datasetMenu')">
                 <div>
                     <a class="dropdown-item" @click="iframeGo('/dataset/copy_datasets')">
                         {{ 'Copy Datasets' | localize }}
@@ -134,13 +134,15 @@
 <script>
 
 import { mapGetters, mapMutations } from "vuex";
+import { eventHub } from "components/eventHub";
+import { SearchParams } from "../model/SearchParams";
+import legacyNavigation from "components/mixins/legacyNavigation";
+import toggle from "components/mixins/toggle";
+import messages from "../messages";
+
 import ContentFilters from "./ContentFilters";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
-import { eventHub } from "components/eventHub";
-import { SearchParams } from "../model/SearchParams";
-import toggle from "components/mixins/toggle";
-import messages from "../messages";
 
 import {
     showAllHiddenContent,
@@ -166,7 +168,7 @@ import {
 
 
 export default {
-    mixins: [ toggle, messages ],
+    mixins: [ toggle, messages, legacyNavigation ],
     components: {
         ContentFilters,
         IconMenu,
@@ -180,6 +182,7 @@ export default {
     },
     data() {
         return {
+            eventHub,
             showSelection: false,
             showFilter: false
         }
@@ -394,7 +397,7 @@ export default {
             if (!newVal) {
                 this.clearSelection();
             }
-            eventHub.$emit("toggleShowSelection", newVal);
+            this.eventHub.$emit("toggleShowSelection", newVal);
         }
     }
 }

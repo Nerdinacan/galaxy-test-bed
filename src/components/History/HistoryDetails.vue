@@ -59,7 +59,7 @@
         <!-- #region menus and modals -->
 
         <b-popover ref="downloadMenu" target="historyDownloadMenu" placement="bottomleft" triggers="click blur">
-            <gear-menu #default="{ backboneGo, iframeGo }">
+            <gear-menu #default>
                 <div @click="$refs.downloadMenu.$emit('close')">
                     <a class="dropdown-item" href="#" @click="backboneGo('/histories/citations')">
                         {{ 'Export Tool Citations' | localize }}
@@ -72,7 +72,7 @@
         </b-popover>
 
         <b-popover ref="deleteMenu" target="historyDeleteMenu" placement="bottomleft" triggers="click blur">
-            <gear-menu #default="{ backboneGo, iframeGo }">
+            <gear-menu #default>
                 <div @click="$refs.deleteMenu.$emit('close')">
                     <a class="dropdown-item" href="#" v-b-modal.delete-history-modal>
                         {{ 'Delete' | localize }}
@@ -85,7 +85,7 @@
         </b-popover>
 
         <b-popover ref="sharingMenu" target="sharingMenuIcon" placement="bottomleft" triggers="click blur">
-            <gear-menu #default="{ backboneGo, iframeGo }">
+            <gear-menu #default>
                 <div @click="$refs.sharingMenu.$emit('close')">
                     <a class="dropdown-item" href="#" @click="backboneGo('/histories/sharing?id=' + history.id)">
                         {{ 'Share or Publish' | localize }}
@@ -98,7 +98,7 @@
         </b-popover>
 
         <b-popover ref="historyOperations" target="historyOperationsIcon" placement="bottomleft" triggers="click blur">
-            <gear-menu #default="{ backboneGo, iframeGo }">
+            <gear-menu #default>
                 <div @clicked="$refs.historyOperations.$emit('close')">
                     <a class="dropdown-item" href="#" @click="backboneGo('/histories/show_structure')">
                         {{ 'Show Structure' | localize }}
@@ -142,6 +142,7 @@ import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import Annotation from "components/Form/Annotation";
 import toggle from "components/mixins/toggle";
+import legacyNavigation from "components/mixins/legacyNavigation";
 import messages from "./messages";
 
 import { bytesToString } from "utils/utils"
@@ -155,7 +156,7 @@ import {
 
 export default {
 
-    mixins: [ toggle, messages ],
+    mixins: [ toggle, messages, legacyNavigation ],
 
     components: {
         HistoryTags,

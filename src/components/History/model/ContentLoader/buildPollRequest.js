@@ -1,6 +1,6 @@
 import { of, pipe } from "rxjs";
-import { tap, filter, map, pluck, take } from "rxjs/operators";
-import { ajaxGet, firstItem, split } from "utils/observable";
+import { tap, map, pluck, take } from "rxjs/operators";
+import { ajaxGet, firstItem, split, validateType } from "utils/observable";
 import { getHistory, cacheContent, cacheHistory } from "../caching/operators";
 import { SearchParams } from "../SearchParams";
 
@@ -20,7 +20,7 @@ import { SearchParams } from "../SearchParams";
 export const buildPollRequest = () => pipe(
 
     // validate source stream, this observable needs one parameter object
-    filter(param => param instanceof SearchParams),
+    validateType(SearchParams),
     take(1),
 
     // find the history from the params source
