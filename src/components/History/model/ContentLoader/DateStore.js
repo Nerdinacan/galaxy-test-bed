@@ -1,7 +1,13 @@
+/**
+ * This is required until such time as our API works with some
+ * semblance of competence. It keeps track of the last time a
+ * particular request was made so that we can filter future requests
+ */
+
 import moment from "moment";
 import hash from "object-hash";
 
-export default class DateStore {
+export class DateStore {
 
     constructor(keyPrefix = "last-request", storage = sessionStorage) {
         this.keyPrefix = keyPrefix;
