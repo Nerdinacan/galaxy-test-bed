@@ -204,10 +204,12 @@ export default {
         ]),
 
         currentSelection() {
+            console.log("currentSelection");
             return this.contentSelection(this.history.id);
         },
 
         hasSelection() {
+            console.log("hasSelection");
             return this.currentSelection.length;
         },
 

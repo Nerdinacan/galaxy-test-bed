@@ -1,4 +1,4 @@
-import { of, Subject, merge } from "rxjs";
+import { of, Subject, merge, pipe } from "rxjs";
 import { tap, mergeMap, share, map,
     withLatestFrom } from "rxjs/operators";
 import { ajaxGet, firstItem, split } from "utils/observable";
@@ -61,11 +61,6 @@ export const buildContentUrl = params => {
     const extraKeys = "keys=accessible"; // move into summary?
     const order = "order=hid-dsc";
 
-    // let endClause = "";
-    // if (params.end && params.end < Number.POSITIVE_INFINITY) {
-    //     endClause = `q=hid-le&qv=${params.end}`;
-    // }
-
     const skipClause = `offset=${params.skip}`;
     const limitClause = `limit=${SearchParams.pageSize}`;
 
@@ -98,36 +93,16 @@ export const buildContentUrl = params => {
 /**
  * If this URL was already sent in this session, skip it, the polling
  * mechanism will pick up any relevant updates.
+ *
+ * This is kind of like a standard rxjs distinct() but we want to return
+ * an empty array if the url is not distinct instead of just filtering
  * @param {String} baseUrl
  */
-export const previousUrlFilter = (storage = new Set()) => url$ => {
-
-    // Kind of like a normal rxjs distinct, but we want to return
-    // an empty array if the url is not distinct instead of just filtering
-
-    return url$.pipe(
-        mergeMap(url => {
-            return storage.has(url) ? of([]) : of(url).pipe(
-                ajaxGet(),
-                tap(storage.add(url))
-            )
-        })
-    )
-}
-
-
-
-// Unused now, save for later
-
-/**
- * Tacks on an update_time criteria to an outgoing URL so we can
- * limit responses to just stuff that's changed since we looked last
- * @param {String} baseUrl Basic request url without update_time filter
- */
-// export const addUpdateCriteria = url => {
-//     const lastRequested = requestDateStore.getItem(url);
-//     if (lastRequested) {
-//         return `${url}&q=update_time-gt&qv=${lastRequested}`;
-//     }
-//     return url;
-// }
+export const previousUrlFilter = (storage = new Set()) => pipe(
+    mergeMap(url => {
+        return storage.has(url) ? of([]) : of(url).pipe(
+            ajaxGet(),
+            tap(storage.add(url))
+        )
+    })
+)

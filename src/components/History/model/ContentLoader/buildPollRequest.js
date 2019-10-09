@@ -78,17 +78,14 @@ export const buildContentsUrl = history => {
 // update history properly when its pieces change. We can remove this
 // if the api gets fixed.
 
-const store = new DateStore();
+const store = DateStore();
 
 function getLastUpdateTime({ id }, context) {
     const key = `${context}-${id}`;
-    const result = store.getItem(key);
-    // console.log("getLastUpdateTime", key, result);
-    return result;
+    return store.getItem(key);
 }
 
 function setLastUpdateTime({ id }, context) {
     const key = `${context}-${id}`;
-    // console.log("setLastUpdateTime", key);
     store.setItem(key);
 }

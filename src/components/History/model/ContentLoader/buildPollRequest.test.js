@@ -10,14 +10,11 @@ import { SearchParams } from "../SearchParams";
 import { cacheHistory } from "../caching";
 import { wipeDatabase } from "../caching/db";
 
-import {
-    buildPollRequest,
-    buildHistoryUrl,
-    buildContentsUrl,
-    __RewireAPI__ as rw
-} from "./buildPollRequest";
+import { buildPollRequest, buildHistoryUrl, buildContentsUrl,
+    __RewireAPI__ as rw } from "./buildPollRequest";
 
 import sampleHistories from "../testdata/histories.json";
+
 
 describe("ContentLoader/buildPollRequest", () => {
 
