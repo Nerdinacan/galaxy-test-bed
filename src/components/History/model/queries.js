@@ -1,3 +1,7 @@
+/**
+ * Basic ajax queries that run against the api.
+ */
+
 import axios from "axios";
 import { safeAssign } from "utils/safeAssign";
 
@@ -281,7 +285,7 @@ export async function loadToolById(toolId) {
 
 /**
  * Some of the current endpoints mysteriously don't accept JSON, so we need to
- * dosome massaging to send in old form post data. (See if axios can just do
+ * do some massaging to send in old form post data. (See if axios can just do
  * this for us.)
  * @param {Object} fields
  */
@@ -310,7 +314,8 @@ function buildIncompetentQueryFromParams(fields = {}) {
 
 /**
  * Oh yeah! And to add even more stupid, the API doesn't take standard true/false
- * it takes a string representation of a python Boolean meaning
+ * it takes a string representation of a python Boolean meaning true is True and
+ * false is False
  */
 function ruinBooleans(val) {
     if (val === true) return "True";

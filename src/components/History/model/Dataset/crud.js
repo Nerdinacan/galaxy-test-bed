@@ -20,8 +20,7 @@ export const updateSelectedContent = updates => async (history, selection) => {
     const changed = await bulkContentUpdate(history, items, updates);
 
     // update changed results
-    const promises = changed
-        .map(c => c.type_id)
+    const promises = changed.map(c => c.type_id)
         .map(async typeId => {
             const c = await getContent(typeId);
             const props = Object.assign({}, c.toJSON(), updates);
@@ -84,11 +83,6 @@ export async function purgeAllDeletedContent(history) {
 }
 
 // #endregion
-
-
-
-// This function actually works for both datasets and collections
-// TODO: rewrite with the plain promises, probably will be easier
 
 export function updateDataset(data, inputFields) {
 

@@ -40,9 +40,9 @@ export const buildPollRequest = () => pipe(
             cacheHistory(),
             tap(history => setLastUpdateTime(history, "historypoll"))
         ).subscribe({
-            next: newHistory => console.log("buildPollRequest: history refreshed", newHistory.toJSON()),
+            // next: newHistory => console.log("buildPollRequest: history refreshed", newHistory.toJSON()),
             error: err => console.warn("buildPollRequest: error", err),
-            complete: () => console.log("buildPollRequest: complete"),
+            // complete: () => console.log("buildPollRequest: complete"),
         })
     }),
 

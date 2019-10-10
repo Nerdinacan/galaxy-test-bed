@@ -1,5 +1,5 @@
-import { defer, of, from, Observable } from "rxjs";
-import { tap, share, shareReplay, takeUntil, take } from "rxjs/operators";
+import { defer, Observable } from "rxjs";
+import { shareReplay, takeUntil } from "rxjs/operators";
 import polling from 'rx-polling';
 
 import { createInputFunction } from "utils/observable";
@@ -10,13 +10,15 @@ import { buildPollRequest } from "./buildPollRequest";
 
 
 /**
- * Creates a subject and function to stop polling, primarily for debugging purposes.
+ * Creates a subject and function to stop polling, primarily for debugging.
  */
 export const stopPolling = createInputFunction();
 
 
 /**
- * Returns a combined subscription to three observables:
+ * ContentLoader
+ * Rxjs operator accepts user parameters and returns a combined subscription
+ * to three observables:
  *
  * content$:
  * A direct subscription to an observable that updates the history
@@ -38,65 +40,59 @@ export const stopPolling = createInputFunction();
  */
 export const ContentLoader = (config = {}) => incomingParam$ => {
 
+    // suppress settings are primarily for debugging
     const {
         suppressPolling = false,
         suppressManualLoad = false,
-        pollInterval = 10000
+        interval = 5000
     } = config;
 
-    // share this
-    const param$ = incomingParam$.pipe(
-        shareReplay(1)
-    )
+    // share params because we subscribe to it multiple times
+    const param$ = incomingParam$.pipe(shareReplay(1));
 
-    // observable that renders content in the list, just
-    // stares directly at the db for this history
-    const content$ = param$.pipe(
-        contentObservable()
-    )
+    // this is the resultant content for the current params
+    // this gets sent to the UI
+    const content$ = param$.pipe(contentObservable());
 
-    // ajax requests instantiated by filtering/pagination changes
-    // combineLatest(param$, content$)
-    const manual$ = param$.pipe(
-        loadManualRequest()
-    )
+    // when the user changes the params we may have to load new content
+    const manual$ = param$.pipe(loadManualRequest());
 
-    // periodic updates, updates to this history independent of what the
-    // user is looking at, just depends on the history
+    // when the server updates, update the cache. Can merge this with a websocket
+    // observable when we implement realtime updates
     const pollRequest$ = defer(() => param$.pipe(buildPollRequest()));
-    const poll$ = polling(pollRequest$, {
-        interval: pollInterval
-    }).pipe(
+    const poll$ = polling(pollRequest$, { interval }).pipe(
         takeUntil(stopPolling.$)
     )
 
-
     return new Observable(observer => {
 
-        // Standard subscribe handlers apply to content observable,
-        // but we also subscribe to the manual/polling observables
-        // to keep them running while the history panel is open
         const sub = content$.subscribe(observer);
 
-        // when params change, loads next page/params
         if (!suppressManualLoad) {
             const manualSub = manual$.subscribe({
                 // next: val => console.log("manual result", val),
-                complete: () => console.log("manual complete"),
+                // complete: () => console.log("manual complete"),
                 error: err => {
-                    if (err.rxdb) rxdbErrorHandler(err);
+                    if (err.rxdb) {
+                        rxdbErrorHandler(err)
+                    } else {
+                        console.warn("manual loading error", err);
+                    }
                 }
             });
             sub.add(manualSub);
         }
 
-        // catches non-ui updates to history. Server side changes, etc.
         if (!suppressPolling) {
             const pollSub = poll$.subscribe({
-                next: val => console.log("poll result", val),
-                complete: () => console.log("polling complete"),
+                // next: val => console.log("poll result", val),
+                // complete: () => console.log("polling complete"),
                 error: err => {
-                    if (err.rxdb) rxdbErrorHandler(err);
+                    if (err.rxdb) {
+                        rxdbErrorHandler(err)
+                    } else {
+                        console.warn("polling error", err);
+                    }
                 }
             });
             sub.add(pollSub);
@@ -104,11 +100,10 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
 
         return sub;
     })
-
 }
 
 
-// Make error more useful since the author of RxDB coulnd't be bothered.
+// Make rxdb error more useful
 
 function rxdbErrorHandler(err) {
 
@@ -119,7 +114,6 @@ function rxdbErrorHandler(err) {
     const { obj, schema } = err.parameters;
 
     if (obj && schema && schema.properties) {
-
         console.warn(`schema mismatch in ${schema.title}?`);
 
         const objectKeys = Object.keys(obj);

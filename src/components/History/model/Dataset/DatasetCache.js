@@ -1,11 +1,12 @@
 import { pipe } from "rxjs";
-import { isRxDocument, RxDocument } from "rxdb";
+import { isRxDocument } from "rxdb";
 import { map, mergeMap } from "rxjs/operators";
 import { cacheDataset, getDataset, cacheDatasetCollection,
     getDatasetCollection } from "../caching";
 import { getContentDetails } from "../queries";
 import { DscWrapper } from "./DscWrapper";
 import { validate, validateType } from "utils/observable";
+
 
 /**
  * Generates a datset observable from source content.

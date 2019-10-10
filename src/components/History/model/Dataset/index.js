@@ -1,4 +1,7 @@
-export { DatasetCache, DatasetCollectionCache } from "./DatasetCache";
+export {
+    DatasetCache,
+    DatasetCollectionCache
+} from "./DatasetCache";
 
 export {
     hideSelectedContent,

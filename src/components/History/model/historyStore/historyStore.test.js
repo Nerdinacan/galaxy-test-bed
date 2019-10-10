@@ -27,13 +27,6 @@ describe("model/historyStore", () => {
     })
 
 
-    // Smoke test
-
-    it("should exist", () => {
-        expect(historyStore.state).to.be.an('object');
-    })
-
-
     // I'm genuinely unsure why people bother testing mutations
     // but then I'm genuinely unsure why people who advocate Vuex
     // can't recognize how poor a tool it is
