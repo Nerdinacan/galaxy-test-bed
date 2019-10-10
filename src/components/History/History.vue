@@ -93,13 +93,16 @@ export default {
             filter(Boolean),
             distinctUntilChanged(SearchParams.equals),
             tap(p => this.loading = true)
-        )
+        );
 
         const content = param$.pipe(
             ContentLoader({
                 interval: 5000,
-                suppressPolling: false,
+                suppressPolling: true,
                 suppressManualLoad: false
+            }),
+            tap(content => {
+                console.log("new content", content.length   );
             })
         )
 

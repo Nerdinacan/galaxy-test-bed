@@ -1,7 +1,7 @@
 /**
  * Mixin for expanding dataset item.
- * When "expanded", compares local dataset data to local content data and
- * decides whether an ajax update is required.
+ * When "expanded", loads detailed dataset value instead of just
+ * the content index stuff which we use in collapsed mode.
  */
 
 import { pluck, startWith } from "rxjs/operators";

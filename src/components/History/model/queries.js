@@ -115,19 +115,6 @@ export async function secureHistory(history_id) {
 // #region Content Queries
 
 /**
- * Update specific fields on datasets or collections.
- * @param {Object} content content object
- * @param {Object} body Hash of properties to update
- */
-export async function updateContentFields(content, body = {}) {
-    const { history_id, id, history_content_type: type } = content;
-    const url = `/api/histories/${history_id}/contents/${type}s/${id}`;
-    const response = await axios.put(url, body);
-    return doResponse(response);
-}
-
-
-/**
  * Loads specific fields for provided content object, handy for loading
  * visualizations or any other field that's too unwieldy to reasonably include
  * in the standard content caching cycle.
@@ -179,13 +166,10 @@ export async function getContentDetails(content) {
 }
 
 
-
-// delete/purge content, means setting a flag to false
-
 /**
  * Deletes item from history
  *
- * @param {Object} c Content object
+ * @param {Object} content Content object
  * @param {Boolean} purge Permanent delete
  * @param {Boolean} recursive Scorch the earth?
  */
@@ -194,19 +178,31 @@ export async function deleteContent(content, purge = false, recursive = false) {
     const { history_id, history_content_type, id } = content;
     const url = `/api/histories/${history_id}/contents/${history_content_type}s/${id}?${params}`;
     const response = await axios.delete(url);
-    if (response.status != 200) {
-        throw new Error(response);
-    }
-    return response.data;
+    console.log("deleteContent response", response);
+    return doResponse(response);
 }
 
+/**
+ * Undeletes content flagged as deleted.
+ * @param {Object} content
+ */
 export async function undeleteContent(content) {
-    const undeleteResult = await updateContentFields(content, {
+    return await updateContentFields(content, {
         deleted: false
     });
-    return undeleteResult;
 }
 
+/**
+ * Update specific fields on datasets or collections.
+ * @param {Object} content content object
+ * @param {Object} body Hash of properties to update
+ */
+export async function updateContentFields(content, body = {}) {
+    const { history_id, id, history_content_type: type } = content;
+    const url = `/api/histories/${history_id}/contents/${type}s/${id}`;
+    const response = await axios.put(url, body);
+    return doResponse(response);
+}
 
 
 export async function purgeContent(history, content) {
@@ -225,6 +221,8 @@ export async function bulkContentUpdate(history, items = [], fields = {}) {
 
 
 // #endregion
+
+
 
 // #region Collections
 

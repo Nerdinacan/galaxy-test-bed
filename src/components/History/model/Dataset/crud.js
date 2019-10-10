@@ -2,8 +2,30 @@ import { of, combineLatest, forkJoin, from } from "rxjs";
 import { map, pluck, share, take } from "rxjs/operators";
 import { getContent, cacheContent } from "../caching";
 import { getContent as getContentOperator, updateDocFields } from "../caching/operators";
-import { updateContentFields, bulkContentUpdate, getAllContentByFilter } from "../queries";
+import {
+    updateContentFields,
+    bulkContentUpdate,
+    getAllContentByFilter,
+    deleteContent as ajaxDeleteContent,
+    undeleteContent as ajaxUndeleteContent
+} from "../queries";
 import { safeAssign } from "utils/safeAssign";
+
+
+// #region Individual operations
+
+export async function deleteContent(content, purge = false, recursive = false) {
+    const doomed = await ajaxDeleteContent(content, purge, recursive);
+    console.log("doomed", doomed);
+    return await cacheContent(doomed);
+}
+
+export async function undeleteContent(content) {
+    const undeleted = await ajaxUndeleteContent(content);
+    return await cacheContent(undeleted);
+}
+
+// #endregion
 
 
 // #region Operate on a list of items
@@ -53,6 +75,7 @@ export const purgeSelectedContent = updateSelectedContent({
 
 // #endregion
 
+
 // #region Bulk operations across history
 
 export async function unhideAllHiddenContent(history) {
@@ -83,6 +106,7 @@ export async function purgeAllDeletedContent(history) {
 }
 
 // #endregion
+
 
 export function updateDataset(data, inputFields) {
 

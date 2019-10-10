@@ -1,20 +1,3 @@
-import { defer, Observable } from "rxjs";
-import { shareReplay, takeUntil } from "rxjs/operators";
-import polling from 'rx-polling';
-
-import { createInputFunction } from "utils/observable";
-import { contentObservable } from "./contentObservable";
-import { loadManualRequest } from "./loadManualRequest";
-import { buildPollRequest } from "./buildPollRequest";
-
-
-
-/**
- * Creates a subject and function to stop polling, primarily for debugging.
- */
-export const stopPolling = createInputFunction();
-
-
 /**
  * ContentLoader
  * Rxjs operator accepts user parameters and returns a combined subscription
@@ -37,6 +20,27 @@ export const stopPolling = createInputFunction();
  * also believe this mechanism will eliminate the need for other polling
  * operations in galaxy since the history object itself is cached as well as new
  * or updated contents.
+ */
+
+import { defer, Observable } from "rxjs";
+import { shareReplay, takeUntil } from "rxjs/operators";
+import polling from 'rx-polling';
+
+import { createInputFunction } from "utils/observable";
+import { contentObservable } from "./contentObservable";
+import { loadManualRequest } from "./loadManualRequest";
+import { buildPollRequest } from "./buildPollRequest";
+
+
+/**
+ * Creates a subject and function to stop polling, primarily for debugging.
+ */
+export const stopPolling = createInputFunction();
+
+
+/**
+ * Manages updates and display of content based on user params
+ * source: Observable<SourceParams>
  */
 export const ContentLoader = (config = {}) => incomingParam$ => {
 
@@ -76,7 +80,7 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
                     if (err.rxdb) {
                         rxdbErrorHandler(err)
                     } else {
-                        console.warn("manual loading error", err);
+                        console.warn("manual$ error", err);
                     }
                 }
             });
@@ -91,7 +95,7 @@ export const ContentLoader = (config = {}) => incomingParam$ => {
                     if (err.rxdb) {
                         rxdbErrorHandler(err)
                     } else {
-                        console.warn("polling error", err);
+                        console.warn("poll$ error", err);
                     }
                 }
             });

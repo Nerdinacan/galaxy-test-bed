@@ -87,16 +87,21 @@
             @click.stop="editAttributes"
             tooltip-placement="topleft" />
 
-        <icon-menu-item
+        <!-- delete this -->
+        <icon-menu-item v-if="showDeleteButton"
             :title="deleteButtonTitle"
+            :disabled="isPurged"
             icon="trash"
-            @click.stop="deleteDataset"
+            @click.stop="deleteMe"
             tooltip-placement="topleft" />
 
-        <icon-menu-item
+        <!-- remove this -->
+        <icon-menu-item v-if="showUndeleteButton"
             title="Undelete"
+            :disabled="isPurged"
+            :active="isDeleted && !isPurged"
             icon="trash"
-            @click.stop="undeleteDataset"
+            @click.stop="undeleteMe"
             tooltip-placement="topleft" />
 
     </icon-menu>
@@ -104,33 +109,26 @@
 
 <script>
 
-// import { getGalaxyInstance } from "app";
 import { mapGetters } from "vuex";
-import { prependPath, iframeRedirect } from "utils/redirect";
-import messages from "../messages";
+import { deleteContent, undeleteContent } from "../model/Dataset";
 import STATES from "../model/states";
+import messages from "../messages";
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "components/GearMenu";
 import ToolHelpModal from "../ToolHelpModal";
 
-import {
-    deleteContent as deleteContentFromServer,
-    undeleteContent as undeleteContentFromServer
-} from "../model/queries";
 
-import { cacheContent } from "../model/caching";
-
-
-// import { bbRoute, useGalaxy } from "legacyAdapter";
+import { prependPath, iframeRedirect } from "utils/redirect";
 
 function bbRoute() {
-    console.log("bbRoute");
+    console.warn("bbRoute");
 }
 
 function useGalaxy() {
-    console.log("useGalaxy");
+    console.warn("useGalaxy");
 }
+
 
 export default {
     mixins: [ messages ],
@@ -159,8 +157,16 @@ export default {
             return this.dataProp('state');
         },
 
+        isPurged() {
+            return this.dataProp('purged')
+        },
+
+        isDeleted() {
+            return this.dataProp('isDeleted');
+        },
+
         isDeletedOrPurged() {
-            return this.dataProp('isDeleted') || this.dataProp('purged');
+            return this.isDeleted || this.isPurged;
         },
 
 
@@ -224,13 +230,17 @@ export default {
         showDeleteButton() {
             return this.dataProp('accessible') && !this.dataProp('isDeleted');
         },
-        showUndeleteButton() {
-            return this.dataProp('accessible') && this.dataProp('isDeleted') && !this.dataProp('purged');
-        },
         deleteButtonTitle() {
             return this.isDeletedOrPurged
                 ? this.messages.deleteAlreadyDeleted
                 : this.messages.deleteDefault;
+        },
+
+
+        // Undelete Button
+
+        showUndeleteButton() {
+            return this.dataProp('accessible') && this.dataProp('isDeleted');
         },
 
 
@@ -355,16 +365,12 @@ export default {
             });
         },
 
-        async deleteDataset() {
-            const doomed = await deleteContentFromServer(this.content);
-            const cached = await cacheContent(doomed);
-            return cached;
+        deleteMe() {
+            deleteContent(this.content);
         },
 
-        async undeleteDataset() {
-            const undeleted = await undeleteContentFromServer(this.content);
-            const cached = await cacheContent(undeleted);
-            return cached;
+        undeleteMe() {
+            undeleteContent(this.content);
         },
 
         reportError() {
