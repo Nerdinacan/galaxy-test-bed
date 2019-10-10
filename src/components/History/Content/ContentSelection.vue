@@ -44,19 +44,19 @@
                     </b-button>
                     <b-dropdown size="sm" text="With Selected"
                         :disabled="!hasSelection" boundary="viewport">
-                        <b-dropdown-item @click="hideDatasets">
+                        <b-dropdown-item @click="hideSelected">
                             {{ 'Hide Datasets' | localize }}
                         </b-dropdown-item>
-                        <b-dropdown-item @click="unhideDatasets">
+                        <b-dropdown-item @click="unhideSelected">
                             {{ 'Unhide Datasets' | localize }}
                         </b-dropdown-item>
-                        <b-dropdown-item @click="deleteDatasets">
+                        <b-dropdown-item @click="deleteSelected">
                             {{ 'Delete Datasets' | localize }}
                         </b-dropdown-item>
-                        <b-dropdown-item @click="undeleteDatasets">
+                        <b-dropdown-item @click="undeleteSelected">
                             {{ 'Undelete Datasets' | localize }}
                         </b-dropdown-item>
-                        <b-dropdown-item @click="purgeDatasets">
+                        <b-dropdown-item @click="purgeSelected">
                             {{ 'Permanently Delete Datasets' | localize }}
                         </b-dropdown-item>
                         <b-dropdown-item @click="buildDatasetList">
@@ -109,19 +109,19 @@
 
         <b-modal id="show-hidden-content"
             title="Show Hidden Datasets" title-tag="h2"
-            @ok="unhideAllHiddenContent">
+            @ok="unhideAll">
             <p>{{ messages.unhideContent | localize }}</p>
         </b-modal>
 
         <b-modal id="delete-hidden-content"
             title="Delete Hidden Datasets" title-tag="h2"
-            @ok="deleteAllHiddenContent">
+            @ok="deleteAllHidden">
             <p>{{ messages.deleteHiddenContent | localize }}</p>
         </b-modal>
 
         <b-modal id="purge-deleted-content"
             title="Purge Deleted Datasets" title-tag="h2"
-            @ok="purgeAllDeletedContent">
+            @ok="purgeAllDeleted">
             <p>{{ messages.purgeDeletedContent | localize }}</p>
         </b-modal>
 
@@ -145,17 +145,15 @@ import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 
 import {
-    showAllHiddenContent,
+    hideSelectedContent,
+    unhideSelectedContent,
+    deleteSelectedContent,
+    undeleteSelectedContent,
+    purgeSelectedContent,
+    unhideAllHiddenContent,
     deleteAllHiddenContent,
-    purgeAllDeletedContent,
-    bulkContentUpdate
-} from "../model/queries";
-
-import {
-    // createPromiseFromOperator,
-    cacheContent
-} from "../model/caching";
-
+    purgeAllDeletedContent
+} from "../model/Dataset";
 
 // temporary adapters use old backbone modals until I rewrite them
 import {
@@ -204,13 +202,11 @@ export default {
         ]),
 
         currentSelection() {
-            console.log("currentSelection");
             return this.contentSelection(this.history.id);
         },
 
         hasSelection() {
-            console.log("hasSelection");
-            return this.currentSelection.length;
+            return this.currentSelection.size > 0;
         },
 
         // returns content objects associated with selection
@@ -238,7 +234,7 @@ export default {
             "setContentSelection"
         ]),
 
-        // #region selection management
+        // #region Selection Management
 
         selectContent(content) {
             this.setContentSelection({
@@ -263,75 +259,53 @@ export default {
 
         // #region history-wide bulk updates, does server query first to determine "selection"
 
-        async unhideAllHiddenContent(evt) {
-            try {
-                const changed = await showAllHiddenContent(this.history);
-                return await this.cacheChangedContent(changed);
-            } catch(err) {
-                console.warn("error in showHiddenContent", err)
-            } finally {
-                evt.vueTarget.hide();
-            }
+        async unhideAll(evt) {
+            unhideAllHiddenContent(this.history);
+            evt.vueTarget.hide();
         },
 
-        async deleteAllHiddenContent(evt) {
-            try {
-                const changed = await deleteAllHiddenContent(this.history);
-                return await this.cacheChangedContent(changed);
-            } catch(err) {
-                console.warn("error in deleteHiddenContent", err)
-            } finally {
-                evt.vueTarget.hide();
-            }
+        async deleteAllHidden(evt) {
+            deleteAllHiddenContent(this.history);
+            evt.vueTarget.hide();
         },
 
-        async purgeAllDeletedContent(evt) {
-            try {
-                const changed = await purgeAllDeletedContent(this.history);
-                return await this.cacheChangedContent(changed);
-            } catch(err) {
-                console.warn("error in purgeAllDeletedContent", err)
-            } finally {
-                evt.vueTarget.hide();
-            }
+        async purgeAllDeleted(evt) {
+            purgeAllDeletedContent(this.history);
+            evt.vueTarget.hide();
         },
 
         // #endregion
 
-        // #region selected content manipulation, hide/show/delete/purge
+        // #region Selected content manipulation, hide/show/delete/purge
 
-        async hideDatasets() {
-            await this.updatedSelectedContent({ visible: false });
-        },
-
-        async unhideDatasets() {
-            await this.updatedSelectedContent({ visible: true });
-        },
-
-        async deleteDatasets() {
-            await this.updatedSelectedContent({ deleted: true });
-        },
-
-        async purgeDatasets() {
-            await this.updatedSelectedContent({ purged: true, deleted: true });
-        },
-
-        async undeleteDatasets() {
-            await this.updatedSelectedContent({ deleted: false });
-        },
-
-        async updatedSelectedContent(updates) {
-            const items = this.selectedItemIds;
-            if (!items.length) return [];
-            const changed = await bulkContentUpdate(this.history, items, updates);
-            const cacheResult = await this.cacheChangedContent(changed);
+        async runOnSelection(fn) {
+            await fn(this.history, this.selectedContent);
             this.clearSelection();
-            return changed;
+        },
+
+        hideSelected() {
+            this.runOnSelection(hideSelectedContent);
+        },
+
+        unhideSelected() {
+            this.runOnSelection(unhideSelectedContent);
+        },
+
+        deleteSelected() {
+            this.runOnSelection(deleteSelectedContent);
+        },
+
+        undeleteSelected() {
+            this.runOnSelection(undeleteSelectedContent);
+        },
+
+        purgeSelected() {
+            this.runOnSelection(purgeSelectedContent);
         },
 
         // #endregion
 
-        // #region collection creation
+        // #region Collection Creation
 
         async buildDatasetList() {
             const modalSelection = await datasetListModal(this.selectedContent);
@@ -366,27 +340,15 @@ export default {
         },
 
         async createCollection() {
-            console.log("createCollection");
             const items = this.selectedItemIds;
             if (!items.length) return;
             const ajaxResult = await createDatasetCollection(this.history, selection);
-            console.log("createCollection ajaxResult", ajaxResult);
             // const cacheFn = createPromiseFromOperator(cacheDatasetCollection);
             // return await cacheFn(ajaxResult);
         },
 
         // #endregion
 
-        // cache list of stuff we changed
-        async cacheChangedContent(changed = []) {
-            if (changed.length) {
-                // const cacheFn = createPromiseFromOperator(cacheContent);
-                // return await Promise.all(changed.map(async c => await cacheFn(c)));
-            }
-            return [];
-        },
-
-        // need to do this because bootstrap's components never close as advertised
         closeMenu(refName) {
             if (refName in this.$refs) {
                 this.$refs[refName].$emit("close");

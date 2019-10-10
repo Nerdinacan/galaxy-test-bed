@@ -94,6 +94,7 @@ export async function updateHistoryFields(history, payload) {
 
 /**
  * Set permissions to private for indicated history
+ * TODO: rewrite API endpoint for this
  * @param {String} history_id
  */
 export async function secureHistory(history_id) {
@@ -153,11 +154,10 @@ export async function loadContentFields(content, fields = []) {
  * @param {*} history
  * @param {*} filterParams
  */
-async function getAllContentByFilter(history, filterParams = {}, keys = ["id","history_content_type"]) {
+export async function getAllContentByFilter(history, filterParams = {}) {
     const { id } = history;
     const strFilter = buildIncompetentQueryFromParams(filterParams);
-    const strKeys = keys.join(",");
-    const url = `/api/histories/${id}/contents?v=dev&keys=${strKeys}&${strFilter}`;
+    const url = `/api/histories/${id}/contents?v=dev&view=summary&keys=accessible&${strFilter}`;
     const response = await axios.get(url);
     return doResponse(response);
 }
@@ -205,50 +205,14 @@ export async function undeleteContent(content) {
 
 
 
-// Bulk operations on history content, avoiding using the old /history route for now
-// even if it means we need to do a preliminary request
-
-export async function showAllHiddenContent(history) {
-    const hiddenContent = await getAllContentByFilter(history, {
-        visible: false
-    });
-    if (hiddenContent.length) {
-        const updates = { visible: true };
-        return await bulkContentUpdate(history, hiddenContent, updates);
-    }
-    return [];
-}
-
-export async function deleteAllHiddenContent(history) {
-    const hiddenContent = await getAllContentByFilter(history, {
-        visible: false
-    });
-    if (hiddenContent.length) {
-        const updates = { deleted: true };
-        return await bulkContentUpdate(history, hiddenContent, updates);
-    }
-    return [];
-}
-
-export async function purgeAllDeletedContent(history) {
-    const deletedContent = await getAllContentByFilter(history, {
-        deleted: true,
-        purged: false
-    });
-    if (deletedContent.length) {
-        const promises = deletedContent.map(async c => await purgeContent(history, c));
-        return await Promise.all(promises);
-    }
-    return [];
-}
-
 export async function purgeContent(history, content) {
     const url = `/api/histories/${history.id}/contents/${content.id}?purge=True`;
     const response = await axios.delete(url);
     return doResponse(response);
 }
 
-export async function bulkContentUpdate({ id }, items = [], fields = {}) {
+export async function bulkContentUpdate(history, items = [], fields = {}) {
+    const { id } = history;
     const url = `/api/histories/${id}/contents`;
     const payload = Object.assign({}, fields, { items });
     const response = await axios.put(url, payload);

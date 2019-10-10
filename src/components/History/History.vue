@@ -57,7 +57,11 @@ export default {
         historyId: { type: String, required: true }
     },
     computed: {
-        ...mapState("history", [ "histories" ]),
+
+        ...mapState("history", [
+            "histories"
+        ]),
+
         history() {
             return this.histories.find(h => h.id == this.historyId);
         }
