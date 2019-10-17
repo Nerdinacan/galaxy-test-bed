@@ -35,7 +35,7 @@
 <script>
 
 import { mapState } from "vuex";
-import { tap, filter, pluck, distinctUntilChanged, startWith } from "rxjs/operators";
+import { tap, map, filter, pluck, distinctUntilChanged, startWith } from "rxjs/operators";
 import { ContentLoader } from "./model/ContentLoader";
 import { SearchParams } from "./model/SearchParams";
 
@@ -44,6 +44,7 @@ import HistoryMessages from "./HistoryMessages";
 import ContentSelection from "./Content/ContentSelection";
 import ContentList from "./Content/ContentList";
 import HistoryEmpty from "./HistoryEmpty";
+
 
 export default {
     components: {
@@ -100,9 +101,6 @@ export default {
                 interval: 5000,
                 suppressPolling: true,
                 suppressManualLoad: false
-            }),
-            tap(content => {
-                console.log("new content", content.length   );
             })
         )
 

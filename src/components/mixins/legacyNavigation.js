@@ -18,6 +18,21 @@ export default {
         backboneGo(path) {
             console.log("backboneGo", path);
             // backboneRedirect(path);
+        },
+        bbRoute() {
+
+        },
+        addDataset(id) {
+            console.log("addDataset", id);
         }
     }
 }
+
+// useGalaxy(Galaxy => {
+//     if (Galaxy.frame && Galaxy.frame.active) {
+//         Galaxy.frame.addDataset(this.dataset.id);
+//     } else {
+//         const path = this.getUrl('display');
+//         iframeRedirect(path);
+//     }
+// })

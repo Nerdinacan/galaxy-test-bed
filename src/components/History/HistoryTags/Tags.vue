@@ -8,13 +8,14 @@
 
 <script>
 
+import { History } from "../model/History";
 import { Tags } from "components/Tags";
 import { HistoryTagService } from "./HistoryTagService";
 
 export default {
     components: { Tags },
     props:{
-        history: { type: Object, required: true }
+        history: { type: History, required: true }
     },
     computed: {
         storeKey() {

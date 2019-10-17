@@ -27,6 +27,7 @@
 
 <script>
 
+import { History } from "../model/History";
 import { SearchParams } from "../model/SearchParams";
 import DebouncedInput from "components/Form/DebouncedInput";
 
@@ -35,7 +36,7 @@ export default {
         DebouncedInput
     },
     props: {
-        history: { type: Object, required: true },
+        history: { type: History, required: true },
         params: { type: SearchParams, required: true }
     },
     computed: {

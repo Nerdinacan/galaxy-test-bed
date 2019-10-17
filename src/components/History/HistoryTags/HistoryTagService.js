@@ -31,9 +31,7 @@ export class HistoryTagService extends TagService {
 
     async saveHistoryTags(rawTags) {
         const tags = Array.from(rawTags);
-        console.log("saveHistoryTags", tags);
-        return tags;
-        // return await updateHistoryFields(this.history, { tags });
+        return await updateHistoryFields(this.history, { tags });
     }
 
 }

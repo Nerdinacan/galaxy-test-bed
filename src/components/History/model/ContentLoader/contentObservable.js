@@ -1,8 +1,7 @@
 import { combineLatest } from "rxjs";
 import { switchMap, map } from "rxjs/operators";
 import { getCollection$ } from "../caching/db";
-
-
+import { Content } from "../Content";
 
 
 /**
@@ -18,7 +17,8 @@ export const contentObservable = () => param$ => {
 
     return combineLatest(param$, coll$).pipe(
         map(buildLocalContentQuery),
-        switchMap(query => query.$)
+        switchMap(query => query.$),
+        map(docs => docs.map(doc => new Content(doc)))
     )
 }
 

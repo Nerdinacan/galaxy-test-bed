@@ -59,7 +59,9 @@ export default {
             };
         },
         tagModels() {
-            return this.value.map(createTag);
+            const result = this.value.map(createTag);
+            console.log("tagModels", result.length, result);
+            return result;
         },
         autocompleteTags() {
             return this.autocompleteItems.map(createTag);

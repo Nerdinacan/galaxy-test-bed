@@ -7,22 +7,21 @@
         <header class="px-3 pt-3 pb-2">
             <h4><a href="#">{{ content.title }}</a></h4>
             <p class="m-0">
-                a {{ content.collectionType() | localize }}
-                {{ content.collectionCount() | localize }}
+                a {{ content.collectionType | localize }}
+                {{ content.collectionCount | localize }}
             </p>
         </header>
-
     </div>
 </template>
 
 
 <script>
 
-import { DscWrapper } from "../model/Dataset";
+import { DatasetCollection } from "../model/DatasetCollection";
 
 export default {
     props: {
-        content: { type: DscWrapper, required: true }
+        content: { type: DatasetCollection, required: true }
     },
     computed: {
         state() {

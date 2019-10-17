@@ -9,7 +9,7 @@
  */
 
 import { defer } from "rxjs";
-import { share, take, pluck, mergeMap, retryWhen } from "rxjs/operators";
+import { share, pluck, mergeMap, retryWhen } from "rxjs/operators";
 import { create, removeDatabase } from "rxdb";
 import { historySchema, historyContentSchema, datasetSchema, datasetCollectionSchema } from "./schema";
 import { pruneToSchema } from "./schemaUtils";
@@ -87,10 +87,7 @@ async function buildHistory(db) {
 
     const coll = await db.collection({
         name: "history",
-        schema: historySchema,
-        methods: {
-            ...dateMethods
-        }
+        schema: historySchema
     });
 
     const historyPruner = pruneToSchema(historySchema);
@@ -113,12 +110,7 @@ async function buildContent(db) {
     // content collection
     const coll = await db.collection({
         name: "historycontent",
-        schema: historyContentSchema,
-        methods: {
-            ...commonProps,
-            ...dateMethods,
-            ...collectionCosmetics
-        }
+        schema: historyContentSchema
     })
 
     const pruner = pruneToSchema(historyContentSchema);
@@ -158,27 +150,7 @@ async function buildDatasets(db) {
 
     const coll = await db.collection({
         name: "dataset",
-        schema: datasetSchema,
-        methods: {
-            ...commonProps,
-            ...dateMethods,
-
-            getUrl(urlType) {
-                const { id, file_ext } = this;
-                const urls = {
-                    purge: `datasets/${id}/purge_async`,
-                    display: `datasets/${id}/display/?preview=True`,
-                    edit: `datasets/edit?dataset_id=${id}`,
-                    download: `datasets/${id}/display?to_ext=${file_ext}`,
-                    report_error: `dataset/errors?id=${id}`,
-                    rerun: `tool_runner/rerun?id=${id}`,
-                    show_params: `datasets/${id}/show_params`,
-                    visualization: "visualization",
-                    meta_download: `dataset/get_metadata_file?hda_id=${id}&metadata_name=`
-                };
-                return (urlType in urls) ? urls[urlType] : null;
-            },
-        }
+        schema: datasetSchema
     })
 
     const pruner = pruneToSchema(datasetSchema);
@@ -200,12 +172,7 @@ async function buildDsc(db) {
 
     const coll = await db.collection( {
         name: "datasetcollection",
-        schema: datasetCollectionSchema,
-        methods: {
-            ...commonProps,
-            ...dateMethods,
-            ...collectionCosmetics
-        }
+        schema: datasetCollectionSchema
     })
 
     const pruner = pruneToSchema(datasetCollectionSchema);
@@ -240,74 +207,3 @@ async function buildDsc(db) {
     return coll;
 }
 
-
-// Model mixins
-
-export const dateMethods = {
-    getUpdateDate() {
-        return moment.utc(this.update_time);
-    }
-}
-
-const commonProps = {
-
-    isDeletedOrPurged() {
-        return this.isDeleted || this.purged;
-    },
-
-    hasData() {
-        return this.file_size > 0;
-    },
-
-    hasMetaData() {
-        return this.meta_files.length > 0;
-    },
-
-    title() {
-        const { name, isDeleted, visible, purged } = this;
-
-        let result = name;
-
-        const itemStates = [];
-
-        if (isDeleted) {
-            itemStates.push("Deleted");
-        }
-        if (visible == false) {
-            itemStates.push("Hidden");
-        }
-        if (purged) {
-            itemStates.push("Purged");
-        }
-        if (itemStates.length) {
-            result += ` (${itemStates.join(", ")})`;
-        }
-
-        return result;
-    }
-}
-
-export const collectionCosmetics = {
-
-    collectionType() {
-        if (!this.collection_type) {
-            return null;
-        }
-        switch(this.collection_type) {
-            case "list":
-                return "list"
-            case "paired":
-                return "dataset pair"
-            case "list:paired":
-                return "list of pairs";
-            default:
-                return "nested list";
-        }
-    },
-
-    collectionCount() {
-        const count = this.element_count;
-        if (!count) return null;
-        return count == 1 ? "with 1 item" : `with ${count} items`;
-    }
-}

@@ -32,10 +32,11 @@
 
 <script>
 
+import { History } from "../model/History";
+import { Content } from "../model/Content";
 import { SearchParams } from "components/History/model/SearchParams";
 import Scroller from "components/Scroller";
 import ContentItem from "./ContentItem";
-
 
 export default {
     components: {
@@ -43,8 +44,15 @@ export default {
         ContentItem,
     },
     props: {
-        history: { type: Object, required: true },
-        content: { type: Array, required: false, default: () => [] },
+        history: { type: History, required: true },
+        content: {
+            type: Array,
+            required: false,
+            default: () => [],
+            validator: list => list.reduce((isValid, item) => {
+                return isValid && item instanceof Content;
+            },true)
+        },
         params: { type: SearchParams, required: true },
         loading: { type: Boolean, required: false, default: false }
     },

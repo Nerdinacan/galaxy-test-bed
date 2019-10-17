@@ -110,10 +110,11 @@
 <script>
 
 import { mapGetters } from "vuex";
-import { deleteContent, undeleteContent } from "../model/Dataset";
+import { deleteContent, undeleteContent } from "../model/Content";
 import STATES from "../model/states";
 import messages from "../messages";
 
+import legacyNavigation from "components/mixins/legacyNavigation";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import GearMenu from "components/GearMenu";
 import ToolHelpModal from "../ToolHelpModal";
@@ -131,7 +132,7 @@ function useGalaxy() {
 
 
 export default {
-    mixins: [ messages ],
+    mixins: [ messages, legacyNavigation ],
     components: {
         IconMenu,
         IconMenuItem,
@@ -167,6 +168,15 @@ export default {
 
         isDeletedOrPurged() {
             return this.isDeleted || this.isPurged;
+        },
+
+        hasData() {
+            return this.dataset.file_size > 0;
+        },
+
+        downloadUrl() {
+            const { id, file_ext } = this.dataset;
+            return `datasets/${id}/display?to_ext=${file_ext}`;
         },
 
 
@@ -258,7 +268,7 @@ export default {
             if (!this.dataset || this.dataProp('purged')) {
                 return false;
             }
-            if (!this.dataset.hasData()) {
+            if (!this.hasData) {
                 return false;
             }
             const okStates = new Set([ STATES.OK, STATES.FAILED_METADATA, STATES.ERROR ]);
@@ -266,7 +276,7 @@ export default {
         },
 
         hasMetaData() {
-            return this.dataset && this.dataset.hasMetaData();
+            return this.dataset && this.dataset.meta_files.length > 0;
         },
 
 
@@ -297,7 +307,7 @@ export default {
             const result = this.dataset
                 && !this.isDeletedOrPurged
                 && this.dataset.viz_count > 0
-                && this.dataset.hasData()
+                && this.hasData
                 && goodStates.has(this.state);
             return result;
         },
@@ -337,8 +347,19 @@ export default {
 
         getUrl(urlType) {
             if (!this.dataset) return null;
-            const path = this.dataset.getUrl(urlType);
-            return path ? prependPath(path) : null;
+            const { id, file_ext } = this.dataset;
+            const urls = {
+                purge: `datasets/${id}/purge_async`,
+                display: `datasets/${id}/display/?preview=True`,
+                edit: `datasets/edit?dataset_id=${id}`,
+                download: `datasets/${id}/display?to_ext=${file_ext}`,
+                report_error: `dataset/errors?id=${id}`,
+                rerun: `tool_runner/rerun?id=${id}`,
+                show_params: `datasets/${id}/show_params`,
+                visualization: "visualization",
+                meta_download: `dataset/get_metadata_file?hda_id=${id}&metadata_name=`
+            };
+            return (urlType in urls) ? prependPath(urls[urlType]) : null;
         },
 
         metadataDownloadUrl({ file_type }) {
@@ -349,14 +370,7 @@ export default {
         // Button Clicks
 
         viewData() {
-            useGalaxy(Galaxy => {
-                if (Galaxy.frame && Galaxy.frame.active) {
-                    Galaxy.frame.addDataset(this.dataset.id);
-                } else {
-                    const path = this.getUrl('display');
-                    iframeRedirect(path);
-                }
-            })
+            this.addDataset(this.dataset.id);
         },
 
         editAttributes() {
@@ -380,21 +394,23 @@ export default {
         },
 
         displayJobParams() {
-            useGalaxy(Galaxy => {
-                const url = this.getUrl('show_params');
-                if (!url) {
-                    console.warn("missing show_params url");
-                    return;
-                }
-                if (Galaxy.frame && Galaxy.frame.active) {
-                    Galaxy.frame.add({
-                        title: "Dataset details",
-                        url
-                    });
-                } else {
-                    iframeRedirect(url);
-                }
-            })
+            const url = this.getUrl('show_params');
+            this.iframeGo(url);
+
+            // useGalaxy(Galaxy => {
+            //     if (!url) {
+            //         console.warn("missing show_params url");
+            //         return;
+            //     }
+            //     if (Galaxy.frame && Galaxy.frame.active) {
+            //         Galaxy.frame.add({
+            //             title: "Dataset details",
+            //             url
+            //         });
+            //     } else {
+            //         iframeRedirect(url);
+            //     }
+            // })
         },
 
         rerun() {

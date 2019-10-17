@@ -1,0 +1,36 @@
+{
+    "history_content_type": "dataset_collection",
+    "populated_state_message": null,
+    "name": "a list",
+    "populated": true,
+    "deleted": false,
+    "type": "collection",
+    "history_id": "c24141d7e4e77705",
+    "tags": [],
+    "visible": true,
+    "job_source_id": null,
+    "job_source_type": null,
+    "elements": [
+        {
+            "element_index": 0,
+            "element_identifier": "UCSC Main on Human: knownGene (genome)",
+            "object": {
+                "model_class": "HistoryDatasetAssociation",
+                "state": "ok",
+                "history_id": "c24141d7e4e77705",
+                "id": "9ccccf1489f05298",
+                "hda_ldda": "hda"
+            },
+            "element_type": "hda",
+            "model_class": "DatasetCollectionElement",
+            "id": "c333314861e68c5c"
+        }
+    ],
+    "collection_type": "list",
+    "url": "/api/histories/c24141d7e4e77705/contents/dataset_collections/eca0af6fb47bf90c",
+    "model_class": "HistoryDatasetCollectionAssociation",
+    "hid": 244,
+    "element_count": 1,
+    "id": "eca0af6fb47bf90c",
+    "populated_state": "ok"
+}

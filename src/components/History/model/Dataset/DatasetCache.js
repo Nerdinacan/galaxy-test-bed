@@ -1,55 +1,39 @@
 import { pipe } from "rxjs";
 import { isRxDocument } from "rxdb";
 import { map, mergeMap } from "rxjs/operators";
-import { cacheDataset, getDataset, cacheDatasetCollection,
-    getDatasetCollection } from "../caching";
+import { cacheDataset, getDataset } from "../caching";
 import { getContentDetails } from "../queries";
-import { DscWrapper } from "./DscWrapper";
 import { validate, validateType } from "utils/observable";
-
+import { Dataset } from "./Dataset";
+import { Content } from "../Content";
 
 /**
  * Generates a datset observable from source content.
  * Updates self if dataset data is too stale.
  */
 export const DatasetCache = () => pipe(
-    validate(isRxDocument, "DatasetCache: content not an rxdoc"),
+    validateType(Content, "DatasetCache: content not a content object"),
     mergeMap(async content => {
-        let ds = await getDataset(content.id);
-        if (!ds || isStale(ds, content)) {
+        let cachedDs = await getDataset(content.id);
+        if (!cachedDs || isContentStale(cachedDs, content)) {
             const raw = await getContentDetails(content);
-            ds = await cacheDataset(raw);
+            cachedDs = await cacheDataset(raw);
         }
-        return ds;
+        return cachedDs;
     }),
     validate(isRxDocument),
+    map(doc => new Dataset(doc))
 )
 
-
-export const DatasetCollectionCache = () => pipe(
-    validate(isRxDocument, "DatasetCollectionCache: content not an rxdoc"),
-    mergeMap(async content => {
-        let dsc = await getDatasetCollection(content.id);
-        if (!dsc || isStale(dsc, content)) {
-            const raw = await getContentDetails(content);
-            dsc = await cacheDatasetCollection(raw);
-        }
-        return dsc;
-    }),
-    // wrap collection with this horrible wrapper because our amateur API does
-    // not return consistent results between a single dataset and
-    // a tree of datasets.
-    validate(isRxDocument),
-    map(dsc => new DscWrapper({ object: dsc.toJSON() })),
-    validateType(DscWrapper)
-)
-
-
-// Works for datasets & collections
-const isStale = (dataset, content) => {
-    if (!isRxDocument(dataset))
-        throw new Error("isStale: dataset not an rxdoc");
-    if (!isRxDocument(content))
-        throw new Error("isStale: content not an rxdoc");
-    return dataset.getUpdateDate().isBefore(content.getUpdateDate());
+// Works for any content with an update_type
+export const isContentStale = (doc, content) => {
+    if (!isRxDocument(doc))
+        throw new Error(`isContentStale: doc should be an rxdb doc, instead it is: ${doc.constructor.name}`);
+    if (!(content instanceof Content)) {
+        console.warn("bad content", content);
+        throw new Error(`isContentStale: content should be a Content object, instead it is: ${content.constructor.name}`);
+    }
+    const model = new Content(doc);
+    return model.updateDate.isBefore(content.updateDate);
 }
+

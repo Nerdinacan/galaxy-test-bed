@@ -15,9 +15,11 @@ import {
 
 import { cacheHistory, uncacheHistory, getHistory } from "../caching";
 import { wipeDatabase } from "../caching/db";
+import { History } from "./History";
 
 import sampleHistories from "../testdata/histories.json";
 import oneHistory from "../testdata/history.json";
+
 
 // we use a lot of listeners in here
 // process.setMaxListeners(0);
@@ -245,6 +247,10 @@ describe("HistoryCache.js", () => {
                     expect(list.length).to.equal(sampleHistories.length);
                     const lastList = historyHandler.lastCall.args[0];
                     expect(lastList.length).to.equal(sampleHistories.length - 1);
+
+                    lastList.forEach(history => {
+                        expect(history).to.be.instanceOf(History);
+                    })
 
                     done();
                 }

@@ -32,13 +32,17 @@
 
         <header v-if="!expanded" class="px-3 py-2" >
             <h4><a href="#" @click.stop="toggleExpand">{{ title }}</a></h4>
-            <nametags v-if="content.tags" :tags="content.tags" :storeKey="tagStoreName" />
+            <nametags v-if="content.tags" :tags="content.tags"
+                :storeKey="tagStoreName" />
         </header>
 
         <header v-if="expanded" class="px-3 py-2" @mouseover.stop>
-            <click-to-edit v-if="datasetName" tagName="h4" v-model="datasetName" :displayLabel="title" />
-            <annotation class="mt-1" v-model="annotation" tooltip-placement="left" />
-            <dataset-tags :dataset="dataset" :historyId="dataset.history_id" />
+            <click-to-edit v-if="datasetName" tagName="h4" v-model="datasetName"
+                :displayLabel="title"
+                :tooltip-title="'Click to edit dataset name' | localize"
+                tooltip-position="top" />
+            <annotation class="mt-1" v-model="annotation" />
+            <content-tags :content="content" />
         </header>
 
         <div v-if="expanded" class="details px-3 pb-3">
@@ -54,7 +58,7 @@
 <script>
 
 import { eventHub } from "components/eventHub";
-import { updateDataset } from "../model/Dataset";
+import { updateContent } from "../model/Content";
 import datasetMixin from "./datasetMixin";
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";
@@ -63,9 +67,8 @@ import Annotation from "components/Form/Annotation";
 import DatasetApplications from "./DatasetApplications";
 import DatasetMenu from "./DatasetMenu";
 import DatasetSummary from "./Summary";
-import DatasetTags from "./DatasetTags";
+import ContentTags from "../Content/ContentTags";
 import { Nametags } from "components/Nametags";
-
 
 
 export default {
@@ -78,7 +81,7 @@ export default {
         DatasetApplications,
         DatasetMenu,
         DatasetSummary,
-        DatasetTags,
+        ContentTags,
         Nametags
     },
     props: {
@@ -123,19 +126,16 @@ export default {
         },
 
         title() {
-            return this.content.title();
+            return this.content.title;
         }
 
     },
     methods: {
 
-        updateModel(fields) {
+        async updateModel(fields) {
             this.loading = true;
-            return updateDataset(this.dataset, fields)
-                .toPromise()
-                .finally(() => {
-                    this.loading = false;
-                })
+            await updateContent(this.dataset, fields);
+            this.loading = false;
         },
 
         toggleSelection() {

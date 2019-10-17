@@ -56,12 +56,13 @@
 
 <script>
 
+import { History } from "./model/History";
 import { mapActions, mapGetters, mapMutations } from "vuex";
 import { copyHistory } from "./model/History";
 
 export default {
     props: {
-        history: { type: Object, required: true },
+        history: { type: History, required: true },
         value: { type: Boolean, required: false, default: false }
     },
     data() {

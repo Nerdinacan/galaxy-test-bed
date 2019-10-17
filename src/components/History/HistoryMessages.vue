@@ -13,11 +13,12 @@
 <script>
 
 import messages from "./messages";
+import { History } from "./model/History";
 
 export default {
     mixins: [ messages ],
     props: {
-        history: { type: Object, required: true }
+        history: { type: History, required: true }
     },
     computed: {
         hasMessages() {

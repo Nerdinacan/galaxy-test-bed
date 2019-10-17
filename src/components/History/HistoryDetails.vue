@@ -3,7 +3,7 @@
 
         <!-- top menu -->
         <header class="d-flex justify-content-between">
-            <h6>{{ niceSize | localize }}</h6>
+            <h6>{{ history.niceSize | localize }}</h6>
             <slot name="menu">
                 <icon-menu class="no-border" #default="{ backboneGo, iframeGo }">
                     <icon-menu-item title="Edit History Tags"
@@ -39,13 +39,8 @@
         <!-- title -->
         <click-to-edit v-model="historyName"
             tag-name="h3" class="history-title mt-2"
-            ref="historyNameInput">
-            <template v-slot:tooltip>
-                <b-tooltip placement="left"
-                    :target="() => $refs.historyNameInput"
-                    :title="'Click to rename history' | localize" />
-            </template>
-        </click-to-edit>
+            :tooltip-title="'Click to rename history' | localize"
+            tooltip-placement="top" />
 
         <!-- description -->
         <annotation class="history-annotation mt-1"
@@ -135,23 +130,24 @@
 
 <script>
 
+import {
+    History,
+    deleteHistory,
+    makeHistoryPrivate,
+    updateHistoryFields
+} from "./model/History";
+
+import toggle from "components/mixins/toggle";
+import messages from "./messages";
+
 import HistoryTags from "./HistoryTags/Tags";
 import CopyModal from "./CopyModal";
 import ClickToEdit from "components/Form/ClickToEdit";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import Annotation from "components/Form/Annotation";
-import toggle from "components/mixins/toggle";
+
 import legacyNavigation from "components/mixins/legacyNavigation";
-import messages from "./messages";
-
-import { bytesToString } from "utils/utils"
-
-import {
-    deleteHistory,
-    makeHistoryPrivate,
-    updateHistoryFields
-} from "./model/History";
 
 
 export default {
@@ -169,7 +165,7 @@ export default {
     },
 
     props: {
-        history: { type: Object, required: true }
+        history: { type: History, required: true }
     },
 
     data() {
@@ -202,11 +198,6 @@ export default {
                     this.updateFields({ name });
                 }
             }
-        },
-
-        niceSize() {
-            const size = this.history.size;
-            return size ? bytesToString(size, true, 2) : "(empty)";
         }
 
     },

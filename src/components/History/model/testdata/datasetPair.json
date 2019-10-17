@@ -1,0 +1,50 @@
+{
+    "history_content_type": "dataset_collection",
+    "populated_state_message": null,
+    "name": "sample pair",
+    "populated": true,
+    "deleted": false,
+    "type": "collection",
+    "history_id": "c24141d7e4e77705",
+    "tags": [],
+    "visible": true,
+    "job_source_id": null,
+    "job_source_type": null,
+    "elements": [
+        {
+            "element_index": 0,
+            "element_identifier": "forward",
+            "object": {
+                "model_class": "HistoryDatasetAssociation",
+                "state": "ok",
+                "history_id": "c24141d7e4e77705",
+                "id": "01bb0538dc3ba475",
+                "hda_ldda": "hda"
+            },
+            "element_type": "hda",
+            "model_class": "DatasetCollectionElement",
+            "id": "55504e7a2466a2e3"
+        },
+        {
+            "element_index": 1,
+            "element_identifier": "reverse",
+            "object": {
+                "model_class": "HistoryDatasetAssociation",
+                "state": "ok",
+                "history_id": "c24141d7e4e77705",
+                "id": "1e4e98cdddcf4ce9",
+                "hda_ldda": "hda"
+            },
+            "element_type": "hda",
+            "model_class": "DatasetCollectionElement",
+            "id": "e38f593eae81d119"
+        }
+    ],
+    "collection_type": "paired",
+    "url": "/api/histories/c24141d7e4e77705/contents/dataset_collections/846fb0a2a64137c0",
+    "model_class": "HistoryDatasetCollectionAssociation",
+    "hid": 241,
+    "element_count": 2,
+    "id": "846fb0a2a64137c0",
+    "populated_state": "ok"
+}

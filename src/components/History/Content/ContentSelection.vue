@@ -19,7 +19,7 @@
                     @click="toggle('showSelection')"
                     :active="showSelection"
                     tooltip-placement="topleft" />
-                <icon-menu-item id="datasetMenuGear"
+                <icon-menu-item ref="datasetMenuGear"
                     title="Dataset Operations"
                     icon="cog"
                     :useTooltip="false" />
@@ -78,7 +78,7 @@
 
         <!-- #region Menus and popovers -->
 
-        <b-popover ref="datasetMenu" target="datasetMenuGear"
+        <b-popover ref="datasetMenu" target="() => $refs['datasetMenuGear']"
             placement="bottomleft" triggers="click blur">
             <gear-menu #default @clicked="closeMenu('datasetMenu')">
                 <div>
@@ -144,6 +144,9 @@ import ContentFilters from "./ContentFilters";
 import GearMenu from "components/GearMenu";
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 
+import { Content } from "../model/Content";
+import { History } from "../model/History";
+
 import {
     hideSelectedContent,
     unhideSelectedContent,
@@ -153,7 +156,7 @@ import {
     unhideAllHiddenContent,
     deleteAllHiddenContent,
     purgeAllDeletedContent
-} from "../model/Dataset";
+} from "../model/Content";
 
 // temporary adapters use old backbone modals until I rewrite them
 import {
@@ -174,9 +177,16 @@ export default {
         GearMenu
     },
     props: {
-        history: { type: Object, required: true },
+        history: { type: History, required: true },
         params: { type: SearchParams, required: true },
-        content: { type: Array, required: false, default: () => [] }
+        content: {
+            type: Array,
+            required: false,
+            default: () => [],
+            validator: list => list.reduce((isValid, item) => {
+                return isValid && item instanceof Content;
+            },true)
+        }
     },
     data() {
         return {

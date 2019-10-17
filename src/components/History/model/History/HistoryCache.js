@@ -3,6 +3,7 @@ import { filter, map, switchMap, mergeMap, share, distinctUntilChanged } from "r
 import { split, createInputFunction } from "utils/observable";
 import moment from "moment";
 
+import { History } from "./History";
 import { getHistories } from "../queries";
 import { getCollection } from "../caching/db";
 import { cacheHistory, uncacheHistory } from "../caching/operators";
@@ -37,7 +38,7 @@ export const HistoryCache = () => userId$ => {
     // histories for this user id
     const Histories$ = query$.pipe(
         switchMap(query => query.$),
-        map(docs => docs.map(d => d.toJSON()))
+        map(docs => docs.map(d => new History(d)))
     )
 
     const loadedHistories$ = query$.pipe(

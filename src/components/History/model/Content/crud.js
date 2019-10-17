@@ -1,5 +1,6 @@
 import { of, combineLatest, forkJoin, from } from "rxjs";
 import { map, pluck, share, take } from "rxjs/operators";
+import { isRxDocument } from "rxdb";
 import { getContent, cacheContent } from "../caching";
 import { getContent as getContentOperator, updateDocFields } from "../caching/operators";
 import {
@@ -12,17 +13,36 @@ import {
 import { safeAssign } from "utils/safeAssign";
 
 
+function isEmptyObject(obj) {
+    return Object.keys(obj).length === 0 && obj.constructor === Object;
+}
+
+
 // #region Individual operations
 
 export async function deleteContent(content, purge = false, recursive = false) {
     const doomed = await ajaxDeleteContent(content, purge, recursive);
-    console.log("doomed", doomed);
     return await cacheContent(doomed);
 }
 
 export async function undeleteContent(content) {
     const undeleted = await ajaxUndeleteContent(content);
     return await cacheContent(undeleted);
+}
+
+export async function updateContent(content, fields) {
+
+    let updatedContent = await updateContentFields(content, fields);
+
+    // For whatever hairbrained reason, updates to datasetcollections don't return
+    // an updated record like dataset updates do, so we'll need to recreate those props
+    // so that we can cache the update
+    if (isEmptyObject(updatedContent)) {
+        const origProps = isRxDocument(content) ? content.toJSON() : content;
+        updatedContent = Object.assign({}, origProps, fields);
+    }
+
+    return await cacheContent(updatedContent);
 }
 
 // #endregion
@@ -45,9 +65,11 @@ export const updateSelectedContent = updates => async (history, selection) => {
     const promises = changed.map(c => c.type_id)
         .map(async typeId => {
             const c = await getContent(typeId);
+            if (null === c) return null;
             const props = Object.assign({}, c.toJSON(), updates);
             return await cacheContent(props);
-        });
+        })
+        .filter(Boolean);
 
     return await Promise.all(promises);
 }

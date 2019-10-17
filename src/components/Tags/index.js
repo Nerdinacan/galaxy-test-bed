@@ -7,3 +7,5 @@ export { default as Tags } from "./Tags";
 
 // functions for mounting the tag editor in non-Vue environments
 export { mountMakoTags, mountModelTags } from "./mounts";
+
+export { createTag, diffTags } from "./model";

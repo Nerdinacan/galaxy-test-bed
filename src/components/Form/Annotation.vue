@@ -1,15 +1,9 @@
 <template>
     <click-to-edit class="annotation" tagName="p"
         :value="annotation" ref="annotationInput"
-        :placeholder="'Click to edit annotation' | localize">
-
-        <template v-slot:tooltip>
-            <b-tooltip ref="annotationTooltip"
-                :placement="tooltipPlacement"
-                :target="() => $refs['annotationInput']"
-                :title="'Click to edit annotation' | localize"
-                boundary="viewport" />
-        </template>
+        :placeholder="placeholder | localize"
+        :tooltip-title="tooltipTitle | localize"
+        :tooltip-placement="tooltipPlacement">
 
         <template v-slot:default="{ toggleEdit, placeholder, stateValidator }">
             <debounced-input v-model="annotation" :delay="1000">
@@ -42,6 +36,8 @@ export default {
     },
     props: {
         value: { type: String, required: false, default: "" },
+        placeholder: { type: String, required: false, default: "Click to edit annotation" },
+        tooltipTitle: { type: String, required: false, default: "Click to edit annotation" },
         tooltipPlacement: { type: String, required: false, default: "left" }
     },
     computed: {

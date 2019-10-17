@@ -87,7 +87,7 @@ export async function deleteHistoryById(id, purge = false) {
 /**
  * Update specific fields in history
  * @param {Object} history
- * @param {Object} payload Object hash of fields to update
+ * @param {Object} payload fields to update
  */
 export async function updateHistoryFields(history, payload) {
     const url = `/api/histories/${history.id}?${stdHistoryParams}`;
@@ -160,7 +160,8 @@ export async function getAllContentByFilter(history, filterParams = {}) {
  * @param {*} content
  */
 export async function getContentDetails(content) {
-    const url = content.url;
+    const { history_id, id } = content;
+    const url = `/api/histories/${history_id}/contents/${id}`;
     const response = await axios.get(url);
     return doResponse(response);
 }
@@ -178,7 +179,6 @@ export async function deleteContent(content, purge = false, recursive = false) {
     const { history_id, history_content_type, id } = content;
     const url = `/api/histories/${history_id}/contents/${history_content_type}s/${id}?${params}`;
     const response = await axios.delete(url);
-    console.log("deleteContent response", response);
     return doResponse(response);
 }
 
@@ -187,9 +187,11 @@ export async function deleteContent(content, purge = false, recursive = false) {
  * @param {Object} content
  */
 export async function undeleteContent(content) {
-    return await updateContentFields(content, {
+    const updateResult = await updateContentFields(content, {
         deleted: false
     });
+    console.log("updateResult", updateResult);
+    return updateResult;
 }
 
 /**

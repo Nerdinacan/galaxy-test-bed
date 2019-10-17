@@ -17,10 +17,11 @@
 
 import dasherize from "underscore.string/dasherize";
 import { mapGetters, mapActions } from "vuex";
+import { Content } from "../model/Content";
+
 import { Dataset } from "../Dataset";
 import DatasetCollection from "../DatasetCollection";
 import { eventHub } from "components/eventHub";
-// import { IdState } from "vue-virtual-scroller";
 
 export default {
     components: {
@@ -28,7 +29,7 @@ export default {
         "dataset_collection": DatasetCollection,
     },
     props: {
-        content: { type: Object, required: true },
+        content: { type: Content, required: true },
         active: { type: Boolean, required: false, default: true }
     },
     data() {

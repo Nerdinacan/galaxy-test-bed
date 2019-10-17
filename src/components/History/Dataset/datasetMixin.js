@@ -4,12 +4,13 @@
  * the content index stuff which we use in collapsed mode.
  */
 
-import { pluck, startWith } from "rxjs/operators";
+import { tap, pluck, startWith } from "rxjs/operators";
 import { DatasetCache } from "../model/Dataset";
+import { Content } from "../model/Content";
 
 export default {
     props: {
-        content: { type: Object, required: true }
+        content: { type: Content, required: true }
     },
     data() {
         return {

@@ -37,22 +37,16 @@
 
                 <click-to-edit v-model="collectionName"
                     tag-name="h3" class="history-title mt-3"
-                    ref="nameInput">
-                    <template #tooltip>
-                        <b-tooltip placement="bottom"
-                            :target="() => $refs.nameInput"
-                            :title="'Click to rename collection' | localize" />
-                    </template>
-                </click-to-edit>
+                    :tooltip-title="'Click to rename collection' | localize" />
 
                 <p class="mt-1" v-if="selectedModel">
-                    a {{ selectedModel.collectionType() | localize }}
-                    {{ selectedModel.collectionCount() | localize }}
+                    a {{ selectedModel.collectionType | localize }}
+                    {{ selectedModel.collectionCount | localize }}
                 </p>
 
                 <transition name="fade">
                     <div v-if="showTags">
-                        Tags
+                        <content-tags :content="selectedModel" />
                     </div>
                 </transition>
 
@@ -64,7 +58,7 @@
             <transition name="fade">
                 <scroller v-if="content.length" :items="content" keyProp="id">
                     <template #default="{ item, index }">
-                        <component :is="item.component"
+                        <component :is="componentName(item)"
                             class="content-item mb-1"
                             :content="item"
                             :tabindex="index"
@@ -75,8 +69,6 @@
             </transition>
         </div>
 
-        <!-- <pre>{{ content }}</pre> -->
-
     </section>
 </template>
 
@@ -85,16 +77,20 @@
 
 import { mapState, mapMutations } from "vuex";
 import { tap, map, pluck, filter, startWith } from "rxjs/operators";
-import { updateDataset } from "../model/Dataset";
-import { DatasetCollectionCache } from "../model/Dataset";
+import dasherize from "underscore.string/dasherize";
+
+import { updateContent } from "../model/Content";
+import { DatasetCollectionCache } from "../model/DatasetCollection";
 import { getContent } from "../model/caching/operators";
 
 import { IconMenu, IconMenuItem } from "components/IconMenu";
 import Scroller from "components/Scroller";
 import ClickToEdit from "components/Form/ClickToEdit";
+import ContentTags from "../Content/ContentTags";
 import DscCollection from "./DscCollection";
 import DscDataset from "./DscDataset";
 import toggle from "components/mixins/toggle";
+
 
 export default {
 
@@ -106,7 +102,8 @@ export default {
         IconMenu,
         IconMenuItem,
         "dataset-collection": DscCollection,
-        "hda": DscDataset
+        "hda": DscDataset,
+        ContentTags
     },
 
     props: {
@@ -193,7 +190,7 @@ export default {
 
         async updateModel(fields) {
             this.loading = true;
-            const result = await updateDataset(this.dsc, fields).toPromise();
+            const result = await updateContent(this.dsc, fields);
             console.log("updateModel result", result);
             this.loading = false;
         },
@@ -221,7 +218,14 @@ export default {
 
         focusItem({ currentTarget }) {
             currentTarget.focus();
-        }
+        },
+
+        componentName(item) {
+            const name = dasherize(item.element_type);
+            console.log("componentName", name, item);
+            return name;
+        },
+
     }
 }
 

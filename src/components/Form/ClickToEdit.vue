@@ -1,11 +1,16 @@
 <template>
-    <div class="clickToEdit">
+    <div ref="editor" class="clickToEdit">
 
-        <component :is="tagName" v-if="!editing" @click="toggleEdit(true)">
+        <component ref="displayElement" :is="tagName" v-if="!editing" @click="toggleEdit(true)">
             <span class="editable"></span>
             <span>{{ displayValue }}</span>
-            <slot name="tooltip" :editing="editing" :localValue="localValue"></slot>
         </component>
+
+        <b-tooltip v-if="tooltipTitle" boundary="window"
+            :placement="tooltipPlacement"
+            :target="() => $refs['displayElement']">
+            {{ tooltipTitle }}
+        </b-tooltip>
 
         <component :is="tagName" v-if="editing">
             <slot :toggleEdit="toggleEdit"
@@ -52,7 +57,11 @@ export default {
         placeholder: { type: String, required: false, default: "" },
         stateValidator: { type: Function, required: false, default: defaultStateValidator },
         debounceDelay: { type: Number, required: false, default: 1000 },
-        displayLabel: { type: String, required: false, default: "" }
+        displayLabel: { type: String, required: false, default: "" },
+        tooltipTitle: { type: String, required: false, default: "" },
+        // TODO: As usual, placement doesn't work as described by bootstrap,
+        // But this is the setting you'd give it if it did.
+        tooltipPlacement: { type: String, required: false, default: "auto" }
     },
     data() {
         return {
@@ -74,9 +83,24 @@ export default {
             }
         }
     },
+    watch: {
+        // Need to manually close tooltips because nothing Bootstrap has
+        // ever produced works as described
+        editing(isEditing) {
+            if (isEditing) {
+                this.$root.$emit('bv::hide::tooltip');
+            }
+        }
+    },
     methods: {
         toggleEdit(forceVal) {
             this.editing = (forceVal !== undefined) ? forceVal : !this.editing;
+        },
+        editorTarget() {
+            if (this.$refs['editor']) {
+                return this.$refs['editor']
+            }
+            return null;
         }
     }
 }
@@ -121,5 +145,7 @@ h4 input {
     font-size: $h4-font-size;
     font-weight: 500;
 }
+
+.tooltip { top: 0; }
 
 </style>

@@ -30,8 +30,8 @@
         <header class="px-3 py-2" v-if="content">
             <h4><a href="#">{{ content.name }}</a></h4>
             <p class="m-0">
-                a {{ content.collectionType() | localize }}
-                {{ content.collectionCount() | localize }}
+                a {{ content.collectionType | localize }}
+                {{ content.collectionCount | localize }}
             </p>
         </header>
 
