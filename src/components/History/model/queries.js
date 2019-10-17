@@ -256,8 +256,7 @@ const toolStash = new Map();
 
 export async function loadToolFromJob(jobId) {
     const job = await loadJobById(jobId);
-    const tool = await loadToolById(job.toolId);
-    return tool;
+    return await loadToolForJob(job);
 }
 
 export async function loadJobById(jobId) {
@@ -270,14 +269,16 @@ export async function loadJobById(jobId) {
     return jobStash.get(jobId);
 }
 
-export async function loadToolById(toolId) {
-    if (!toolStash.has(toolId)) {
-        const url = `/api/tools/${toolId}/build`;
+export async function loadToolForJob(job) {
+    const { tool_id, history_id } = job;
+    const key = `${tool_id}-${history_id}`;
+    if (!toolStash.has(key)) {
+        const url = `/api/tools/${tool_id}/build?history_id=${history_id}`;
         const response = await axios.get(url);
         const tool = response.data;
-        toolStash.set(toolId, tool);
+        toolStash.set(key, tool);
     }
-    return toolStash.get(toolId);
+    return toolStash.get(key);
 }
 
 // #endregion

@@ -15,8 +15,9 @@ export class ModelBase {
         this.loadProps(props);
     }
 
-    loadProps(props) {
-        Object.keys(props).map(p => this[p] = props[p]);
+    loadProps(raw) {
+        const { _rev, ...props } = raw; // eslint-disable-line no-unused-vars
+        Object.assign(this, props);
     }
 }
 

@@ -95,21 +95,19 @@ export class DatasetCollection extends Content {
 
     // creates child collection from bungled api tree format
     static createChildCollection(raw) {
-
-        const props = Object.assign({}, raw, raw.object);
-        delete props.object;
-
+        const allProps = Object.assign({}, raw, raw.object, {
+            name: raw.element_identifier
+        });
+        const { object, element_identifier, ...props } = allProps; // eslint-disable-line no-unused-vars
         return new DatasetCollection(props);
     }
 
     // creates a child dataset from the bungled api tree format
     static createChildDataset(raw) {
-
-        const props = Object.assign({}, raw, raw.object);
-        props.name = raw.element_identifier;
-        delete props.object;
-        delete props.element_identifier;
-
+        const allProps = Object.assign({}, raw, raw.object, {
+            name: raw.element_identifier
+        });
+        const { object, element_identifier, ...props } = allProps; // eslint-disable-line no-unused-vars
         return new Dataset(props);
     }
 }

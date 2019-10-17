@@ -5,12 +5,12 @@ import assert from "assert";
 
 import { of, isObservable } from "rxjs";
 import { tap, take } from "rxjs/operators";
-import { isRxDocument } from "rxdb";
 
 import { cacheContent } from "../caching";
 import { wipeDatabase } from "../caching/db";
 import { contentObservable } from "./contentObservable";
 import { SearchParams } from "../SearchParams";
+import { Content } from "../Content";
 
 // test data
 import testHistory from "../testdata/history.json";
@@ -134,7 +134,7 @@ describe("ContentLoader/contentObservable", () => {
             const testName = "floobadooba";
 
             const changeStuff = sinon.fake(async results => {
-                const firstResult = results[0].toJSON();
+                const firstResult = results[0];
                 firstResult.name = testName;
                 return await cacheContent(firstResult);
             })
@@ -144,7 +144,7 @@ describe("ContentLoader/contentObservable", () => {
                 expect(results.length).to.equal(testContent.length);
                 results.map(c => {
                     expect(c.history_id).to.equal(testParams.historyId);
-                    assert(isRxDocument(c), "result should be an rxdb document");
+                    expect(c, "result should be a Content object").to.be.instanceOf(Content);
                 })
             })
 
@@ -171,9 +171,7 @@ describe("ContentLoader/contentObservable", () => {
 
                     const firstResult = resultHandler.firstCall.args[0][0];
                     const lastResult = resultHandler.lastCall.args[0][0];
-
-                    // rxdb reuses the doc objects, so both queries should point to the same RxDoc
-                    expect(firstResult).to.equal(lastResult);
+                    expect(firstResult).to.deep.equal(lastResult);
 
                     expect(lastResult.name).to.equal(testName);
                     done();

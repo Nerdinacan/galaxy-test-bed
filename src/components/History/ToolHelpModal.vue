@@ -1,6 +1,6 @@
 <template>
     <b-modal v-model="showModal" :title="modalTitle">
-        <div v-if="helpHtml.length" v-html="helpHtml"></div>
+        <div v-if="tool && tool.help.length" v-html="tool.help"></div>
         <p v-else>{{ messages.nohelp | localize }}</p>
     </b-modal>
 </template>
@@ -8,7 +8,7 @@
 
 <script>
 
-import { loadToolFromJob } from "components/History/model/queries";
+import { loadToolFromJob } from "./model/queries";
 import messages from "./messages";
 
 export default {
@@ -31,7 +31,7 @@ export default {
         },
         showModal: {
             get() {
-                return this.showToolHelp && (this.helpHtml.length > 0);
+                return this.showToolHelp;
             },
             set(val) {
                 this.$emit('update:showToolHelp', val);
